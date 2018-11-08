@@ -10,6 +10,9 @@ class Player:
         self.x += self.vel[0]
         self.y += self.vel[1]
     
+    def next_pos(self):
+        return (self.x + self.vel[0], self.y + self.vel[1])
+
     def toJSON(self):
         return json.dumps(dict([('player_number', self.player_number), ('x', self.x), ('y', self.y)]))
     
