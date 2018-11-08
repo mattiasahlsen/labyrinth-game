@@ -3,7 +3,6 @@ from graphics import renderer
 import pygame, sys, socket, json, network.message
 
 # Network constants
-#SERVER_IP = '192.168.86.30'
 SERVER_IP = 'localhost'
 SERVER_PORT = 15000
 TICK_INTERVAL = 50
