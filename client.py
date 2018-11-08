@@ -3,6 +3,7 @@ from graphics import renderer
 import pygame, sys, socket, json, network.message
 
 # Network constants
+#SERVER_IP = '192.168.86.30'
 SERVER_IP = 'localhost'
 SERVER_PORT = 15000
 TICK_INTERVAL = 50
@@ -53,9 +54,10 @@ while 1:
     # Read data from the server
     try:
         buf = network.message.recv_msg(s)
-        buf = buf.decode()
         if buf:
-            game.from_json(buf)
+            buf = buf.decode()
+            if buf:
+                game.from_json(buf)
     except BlockingIOError:
         pass
 
@@ -63,8 +65,11 @@ while 1:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
 
-    # Render graphics
-    renderer.render()
+    if len(game.winners) > 0:
+        renderer.finish()
+    else:
+        renderer.render()
+    
 
     # Keyboard input
     pygame.event.pump()

@@ -15,7 +15,8 @@ class Maze:
     def as_json(self):
         data = dict([('width', self.width), 
             ('max_players', self.max_players),
-            ('starting_locations', self.starting_locations), 
+            ('starting_locations', self.starting_locations),
+            ('goal', self.goal),
             ('bit_array', self.maze)])
         return json.dumps(data)
     
@@ -24,4 +25,5 @@ class Maze:
         self.width              = data['width']
         self.max_players        = data['max_players']
         self.starting_locations = data['starting_locations']
+        self.goal               = data['goal']
         self.maze               = data['bit_array']    

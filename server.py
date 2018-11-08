@@ -12,6 +12,7 @@ def wait_players():
         clients.append(server_socket.accept())
         clients[-1][0].setblocking(False)
         print("Got connection from: " + str(clients[-1][1]))
+    server_socket.close()
     return clients
 
 def game_loop():
@@ -49,13 +50,21 @@ def game_loop():
             for i in range(PLAYERS):
                 network.message.send_msg(clients[i][0], str.encode(game.state_as_json()))
                 velocities[i] = (0, 0)
+            
+            if len(game.winners) > 0:
+                break
+    
+    pygame.time.wait(3000)
+    for client in clients:
+        client[0].close()
+
         
 # Networking constants
 HOST = ''
 PORT = 15000
 
 # Game related
-PLAYERS = 2             # amount of players
+PLAYERS = 1             # amount of players
 MOVEMENT_TIMEOUT = 50  # timeout for moving one unit
 
 maze = maze.Maze()

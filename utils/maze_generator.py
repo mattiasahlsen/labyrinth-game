@@ -8,6 +8,7 @@ starting_locations = [
     (40, 79),
     (1, 40)
 ]
+goal = (40, 40)
 
 for y in range(width):
     for x in range(width):
@@ -27,6 +28,7 @@ f = open('maze.txt', 'w')
 data = dict([('width', width), 
     ('max_players', max_players),
     ('starting_locations', starting_locations), 
+    ('goal', goal),
     ('bit_array', bit_array)])
 
 json.dump(data, f)

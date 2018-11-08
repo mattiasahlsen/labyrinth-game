@@ -7,6 +7,8 @@ class Game_State:
         self.maze = maze
         self.player_amount = player_amount
         self.players = []
+        self.game_over = False
+        self.winners = []
         for i in range(player_amount):
             self.players.append(player.Player(i, maze.starting_locations[i]))
 
@@ -28,17 +30,22 @@ class Game_State:
         for player in self.players:
             if self.legal_move(player.next_pos()):
                 player.move()
+            if player.x == self.maze.goal[0] and player.y == self.maze.goal[1]:
+                self.game_over = True
+                self.winners.append(player.player_number)
             player.vel = (0, 0)
 
     def state_as_json(self):
         data = []
         for player in self.players:
             data.append(player.toJSON())
-        return(json.dumps(data))
+        return(json.dumps(dict([('winners', self.winners), ('players', data)])))
 
     def from_json(self, json_data):
         data = json.loads(json_data)
-        for json_player in data:
+        self.winners = data['winners']
+
+        for json_player in data['players']:
             player = json.loads(json_player)
             n = player['player_number']
             
