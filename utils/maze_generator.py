@@ -1,6 +1,13 @@
 import json
 bit_array = []
 width = 80
+max_players = 4
+starting_locations = [
+    (40, 1),
+    (79, 40),
+    (40, 79),
+    (1, 40)
+]
 
 for y in range(width):
     for x in range(width):
@@ -17,5 +24,9 @@ for y in range(width):
 
 f = open('maze.txt', 'w')
 
-data = (width, bit_array)
+data = dict([('width', width), 
+    ('max_players', max_players),
+    ('starting_locations', starting_locations), 
+    ('bit_array', bit_array)])
+
 json.dump(data, f)
