@@ -1,13 +1,11 @@
 import json
 
 class Maze:
-    def __init__(self, width=None, bit_array=None, max_players=None, starting_locations=None):
-        self.width = width
-        self.maze = bit_array
-        self.max_players = max_players
-        self.starting_locations = starting_locations
-        if not bit_array or not width:
+    def __init__(self, json_data=None):
+        if not json_data:
             self.load_maze_from_file()
+        else:
+            self.from_json(json_data)
 
     def load_maze_from_file(self):
         f = open('game/maze.txt', 'r')
