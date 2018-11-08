@@ -1,6 +1,6 @@
 from game import *
 from graphics import renderer
-import pygame, sys, socket, json
+import pygame, sys, socket, json, network.message
 
 # Network constants
 SERVER_IP = 'localhost'
@@ -13,39 +13,33 @@ width = 560
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((SERVER_IP, SERVER_PORT))
 
-# Connected, waiting for maze to be sent
-BUF_SIZ = 1024 * 20
-
+# Wait for maze
 while True:
-    buf = s.recv(BUF_SIZ)
+    buf = network.message.recv_msg(s)
     if buf.decode():
         break
-
-buf = buf.decode()
-maze = maze.Maze(buf)
+maze = maze.Maze(buf.decode())
 
 # Waiting for initial positions
-BUF_SIZ = 1024 * 4
 while True:
-    buf = s.recv(BUF_SIZ)
+    buf = network.message.recv_msg(s)
     if buf.decode():
         break
 
-buf = buf.decode()
-data = json.loads(buf)
+data = json.loads(buf.decode())
 player_amount = data['player_amount']
 my_player = data['player_number']
 
 # Game state object
 game = game_state.Game_State(player_amount, maze)
 
+# Initialize pygame rendering and time-management
 pygame.init()
 block_size = width / maze.width
 screen = pygame.display.set_mode((width, width))
 renderer = renderer.Renderer(screen, width, game)
 clock = pygame.time.Clock()
 
-BUF_SIZ = 1024
 vel = (0, 0)
 tick_timeout = 0
 s.setblocking(False)
@@ -58,7 +52,7 @@ while 1:
 
     # Read data from the server
     try:
-        buf = s.recv(BUF_SIZ)
+        buf = network.message.recv_msg(s)
         buf = buf.decode()
         if buf:
             game.from_json(buf)
@@ -86,8 +80,9 @@ while 1:
     else:
         vel = (0, 0)
     
+    # Send updates to server every TICK_INTERVAL milliseconds
     if tick_timeout > TICK_INTERVAL and vel != (0, 0):
-        s.send(str.encode(json.dumps(vel)))
+        network.message.send_msg(s, str.encode(json.dumps(vel)))
         tick_timeout = 0
 
     pygame.display.flip()
