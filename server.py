@@ -1,10 +1,11 @@
 from game import *
+import network.message
 import socket, pygame, json
 
 def wait_players():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((HOST, PORT))
-    server_socket.listen(4)
+    server_socket.listen(PLAYERS)
 
     clients = []
     while len(clients) < PLAYERS:
@@ -30,7 +31,7 @@ def game_loop():
         # Read all sockets
         for i in range(PLAYERS):
             try:
-                buf = clients[i][0].recv(BUF_SIZ)
+                buf = network.message.recv_msg(clients[i][0])
                 buf = buf.decode()
                 if buf:
                     velocities[i] = json.loads(buf)
@@ -39,7 +40,6 @@ def game_loop():
 
         if time_since_movement > MOVEMENT_TIMEOUT:
             for i in range(PLAYERS):
-                print("i: " + str(i) + ", vel: " + str(velocities[i]))
                 game.set_vel(i, velocities[i])
 
             print("Game state: " + str(game.state_as_json()))
@@ -47,17 +47,16 @@ def game_loop():
             game.tick()
             time_since_movement = 0
             for i in range(PLAYERS):
-                clients[i][0].send(str.encode(game.state_as_json()))
+                network.message.send_msg(clients[i][0], str.encode(game.state_as_json()))
                 velocities[i] = (0, 0)
         
 # Networking constants
 HOST = ''
 PORT = 15000
-BUF_SIZ = 1024
 
 # Game related
-PLAYERS = 1     # amount of players
-MOVEMENT_TIMEOUT = 100  # timeout for moving one unit
+PLAYERS = 2             # amount of players
+MOVEMENT_TIMEOUT = 50  # timeout for moving one unit
 
 maze = maze.Maze()
 game = game_state.Game_State(PLAYERS, maze)
@@ -67,14 +66,14 @@ clients = wait_players()
 print(str(PLAYERS) + " players connected, sending maze data...")
 
 # Send the maze to all clients
-for client in clients:    
-    client[0].send(str.encode(maze.as_json()))
+for client in clients:
+    network.message.send_msg(client[0], str.encode(maze.as_json()))   
 
 print("Assigning player numbers...")
 i = 0
 for client in clients:
     msg = dict([('player_number', i), ('player_amount', PLAYERS)])
-    client[0].send(str.encode(json.dumps(msg)))
+    network.message.send_msg(client[0], str.encode(json.dumps(msg)))
     i += 1
 
 print("Starting game!")
