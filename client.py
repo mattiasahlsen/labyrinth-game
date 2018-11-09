@@ -5,9 +5,10 @@ import pygame
 import network.message
 from game import *
 from graphics import renderer
+from graphics import input_box
 
 # Network constants
-SERVER_IP = 'localhost'
+SERVER_IP = ''
 SERVER_PORT = 15000
 TICK_INTERVAL = 50
 
@@ -15,8 +16,44 @@ TICK_INTERVAL = 50
 width = 560
 FRAME_RATE = 120
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((SERVER_IP, SERVER_PORT))
+def connect(ip, port):
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((ip, port))
+    return client_socket
+
+# Initialize pygame rendering and time-management
+pygame.init()
+screen = pygame.display.set_mode((width, width))
+clock = pygame.time.Clock()
+
+input_box = input_box.InputBox(width / 2, width / 2, 80, 'IP address')
+renderer = renderer.Renderer(screen, width, input_box)
+
+while True:
+    clock.tick(FRAME_RATE)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+        SERVER_IP = input_box.handle_event(event)
+
+    # Validate entered IP    
+    if SERVER_IP:
+        if SERVER_IP == 'localhost':
+            break
+        try:
+            socket.inet_aton(SERVER_IP)
+            break
+        except socket.error:
+            continue
+
+    renderer.render_connect_screen()
+    pygame.display.flip()
+
+screen.fill((0, 0, 0))
+pygame.display.flip()
+
+# Connect to server
+client_socket = connect(SERVER_IP, SERVER_PORT)
 
 # Wait for maze
 msg = network.message.recv_msg(client_socket)
@@ -28,12 +65,7 @@ data = json.loads(msg.decode())
 
 # Game state object
 game = game_state.Game_State(data['player_amount'], maze)
-
-# Initialize pygame rendering and time-management
-pygame.init()
-screen = pygame.display.set_mode((width, width))
-renderer = renderer.Renderer(screen, width, game)
-clock = pygame.time.Clock()
+renderer.init_game(game)
 
 velocity = (0, 0)
 tick_timeout = 0
@@ -59,7 +91,7 @@ while 1:
     if game.winners:
         renderer.finish()
     else:
-        renderer.render()
+        renderer.render_game()
 
     # Keyboard input
     pygame.event.pump()
