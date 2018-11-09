@@ -1,6 +1,6 @@
+import json
 from . import maze
 from . import player
-import json
 
 class Game_State:
     def __init__(self, player_amount, maze):
@@ -48,6 +48,6 @@ class Game_State:
         for json_player in data['players']:
             player = json.loads(json_player)
             n = player['player_number']
-            
+
             self.players[n].x = player['x']
             self.players[n].y = player['y']

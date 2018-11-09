@@ -25,9 +25,9 @@ for y in range(width):
 
 f = open('maze.txt', 'w')
 
-data = dict([('width', width), 
+data = dict([('width', width),
     ('max_players', max_players),
-    ('starting_locations', starting_locations), 
+    ('starting_locations', starting_locations),
     ('goal', goal),
     ('bit_array', bit_array)])
 
