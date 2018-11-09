@@ -1,5 +1,8 @@
 import struct
 
+# Taken from
+# https://stackoverflow.com/a/17668009
+
 def send_msg(sock, msg):
     msg = struct.pack('>I', len(msg)) + msg
     sock.sendall(msg)
