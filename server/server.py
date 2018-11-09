@@ -1,6 +1,10 @@
+import sys
+import os.path
 import socket
 import json
 import pygame
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from game import maze, game_state
 import network.message
 

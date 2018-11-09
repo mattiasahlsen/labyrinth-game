@@ -2,6 +2,9 @@ import sys
 import socket
 import json
 import pygame
+import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 import network.message
 from graphics import renderer
 from graphics import input_box
