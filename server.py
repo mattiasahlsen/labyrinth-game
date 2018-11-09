@@ -9,7 +9,8 @@ HOST = ''
 PORT = 15000
 
 # Game related
-PLAYERS = 1             # amount of players
+print('Amount of players: ', end='')
+PLAYERS = int(input())            # amount of players
 MOVEMENT_TIMEOUT = 50   # timeout for moving one unit
 TICK_RATE = 40          # server ticks per second
 
