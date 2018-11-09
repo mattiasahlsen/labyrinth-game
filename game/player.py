@@ -1,5 +1,3 @@
-import json
-
 class Player:
     def __init__(self, player_number, location):
         self.player_number = player_number
@@ -14,5 +12,5 @@ class Player:
     def next_pos(self):
         return (self.x + self.vel[0], self.y + self.vel[1])
 
-    def toJSON(self):
-        return json.dumps(dict([('player_number', self.player_number), ('x', self.x), ('y', self.y)]))
+    def serializable(self):
+        return dict([('player_number', self.player_number), ('x', self.x), ('y', self.y)])

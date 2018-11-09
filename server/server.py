@@ -58,7 +58,7 @@ def game_loop():
             game.tick()
             time_since_movement = 0
             for i in range(PLAYERS):
-                network.message.send_msg(clients[i][0], str.encode(game.state_as_json()))
+                network.message.send_msg(clients[i][0], str.encode(game.state_to_json()))
                 velocities[i] = (0, 0)
 
             if game.winners:

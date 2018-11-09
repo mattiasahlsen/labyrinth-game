@@ -13,8 +13,8 @@ SERVER_PORT = 15000
 TICK_INTERVAL = 50
 
 # Game constants
-width = 560
-FRAME_RATE = 120
+width = 960
+FRAME_RATE = 60
 
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

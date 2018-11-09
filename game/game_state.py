@@ -34,18 +34,17 @@ class Game_State:
                 self.winners.append(player.player_number)
             player.vel = (0, 0)
 
-    def state_as_json(self):
-        data = []
+    def state_to_json(self):
+        player_jsons = []
         for player in self.players:
-            data.append(player.toJSON())
-        return json.dumps(dict([('winners', self.winners), ('players', data)]))
+            player_jsons.append(player.serializable())
+        return json.dumps(dict([('winners', self.winners), ('players', player_jsons)]))
 
     def from_json(self, json_data):
         data = json.loads(json_data)
         self.winners = data['winners']
 
-        for json_player in data['players']:
-            player = json.loads(json_player)
+        for player in data['players']:
             n = player['player_number']
 
             self.players[n].x = player['x']
