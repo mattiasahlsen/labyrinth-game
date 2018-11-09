@@ -1,6 +1,10 @@
+import sys
+import os.path
 import socket
 import json
 import pygame
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from game import maze, game_state
 import network.message
 
@@ -68,7 +72,7 @@ def game_loop():
     for client in clients:
         client[0].close()
 
-maze = maze.Maze()
+maze = maze.random_maze()
 game = game_state.Game_State(PLAYERS, maze)
 
 # Wait for all players to connect
