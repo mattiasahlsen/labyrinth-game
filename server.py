@@ -1,6 +1,17 @@
+import socket
+import json
+import pygame
 from game import *
 import network.message
-import socket, pygame, json
+
+# Networking constants
+HOST = ''
+PORT = 15000
+
+# Game related
+PLAYERS = 1             # amount of players
+MOVEMENT_TIMEOUT = 50   # timeout for moving one unit
+TICK_RATE = 40          # server ticks per second
 
 def wait_players():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,7 +37,7 @@ def game_loop():
 
     while True:
         # Time
-        clock.tick(40)  
+        clock.tick(TICK_RATE)
         time_since_movement += clock.get_time()
 
         # Read all sockets
@@ -50,22 +61,13 @@ def game_loop():
             for i in range(PLAYERS):
                 network.message.send_msg(clients[i][0], str.encode(game.state_as_json()))
                 velocities[i] = (0, 0)
-            
-            if len(game.winners) > 0:
+
+            if game.winners:
                 break
-    
+
     pygame.time.wait(3000)
     for client in clients:
         client[0].close()
-
-        
-# Networking constants
-HOST = ''
-PORT = 15000
-
-# Game related
-PLAYERS = 1             # amount of players
-MOVEMENT_TIMEOUT = 50  # timeout for moving one unit
 
 maze = maze.Maze()
 game = game_state.Game_State(PLAYERS, maze)
@@ -76,7 +78,7 @@ print(str(PLAYERS) + " players connected, sending maze data...")
 
 # Send the maze to all clients
 for client in clients:
-    network.message.send_msg(client[0], str.encode(maze.as_json()))   
+    network.message.send_msg(client[0], str.encode(maze.as_json()))
 
 print("Assigning player numbers...")
 i = 0

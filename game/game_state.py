@@ -1,5 +1,4 @@
 import json
-from . import maze
 from . import player
 
 class Game_State:
@@ -39,7 +38,7 @@ class Game_State:
         data = []
         for player in self.players:
             data.append(player.toJSON())
-        return(json.dumps(dict([('winners', self.winners), ('players', data)])))
+        return json.dumps(dict([('winners', self.winners), ('players', data)]))
 
     def from_json(self, json_data):
         data = json.loads(json_data)
@@ -51,3 +50,4 @@ class Game_State:
 
             self.players[n].x = player['x']
             self.players[n].y = player['y']
+            

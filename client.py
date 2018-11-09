@@ -1,6 +1,10 @@
+import sys
+import socket
+import json
+import pygame
+import network.message
 from game import *
 from graphics import renderer
-import pygame, sys, socket, json, network.message
 
 # Network constants
 SERVER_IP = 'localhost'
@@ -9,84 +13,77 @@ TICK_INTERVAL = 50
 
 # Game constants
 width = 560
+FRAME_RATE = 120
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((SERVER_IP, SERVER_PORT))
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((SERVER_IP, SERVER_PORT))
 
 # Wait for maze
-while True:
-    buf = network.message.recv_msg(s)
-    if buf.decode():
-        break
-maze = maze.Maze(buf.decode())
+msg = network.message.recv_msg(client_socket)
+maze = maze.Maze(msg.decode())
 
-# Waiting for initial positions
-while True:
-    buf = network.message.recv_msg(s)
-    if buf.decode():
-        break
-
-data = json.loads(buf.decode())
-player_amount = data['player_amount']
-my_player = data['player_number']
+# Wait for starting positions
+msg = network.message.recv_msg(client_socket)
+data = json.loads(msg.decode())
 
 # Game state object
-game = game_state.Game_State(player_amount, maze)
+game = game_state.Game_State(data['player_amount'], maze)
 
 # Initialize pygame rendering and time-management
 pygame.init()
-block_size = width / maze.width
 screen = pygame.display.set_mode((width, width))
 renderer = renderer.Renderer(screen, width, game)
 clock = pygame.time.Clock()
 
-vel = (0, 0)
+velocity = (0, 0)
 tick_timeout = 0
-s.setblocking(False)
+client_socket.setblocking(False)
 
 # Game loop
 while 1:
     # Tick the clock
-    clock.tick(120)
+    clock.tick(FRAME_RATE)
     tick_timeout += clock.get_time()
 
     # Read data from the server
     try:
-        buf = network.message.recv_msg(s)
-        if buf:
-            buf = buf.decode()
-            if buf:
-                game.from_json(buf)
+        msg = network.message.recv_msg(client_socket)
+        if msg:
+            msg = msg.decode()
+            if msg:
+                game.from_json(msg)
     except BlockingIOError:
         pass
 
-    # Handle exit
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT: sys.exit()
-
-    if len(game.winners) > 0:
+    # Render graphics
+    if game.winners:
         renderer.finish()
     else:
         renderer.render()
-    
 
     # Keyboard input
     pygame.event.pump()
     keys = pygame.key.get_pressed()
-    if (keys[pygame.K_RIGHT]):
-        vel = (1, 0)
-    elif (keys[pygame.K_LEFT]):
-        vel = (-1, 0)
-    elif (keys[pygame.K_UP]):
-        vel = (0, -1)
-    elif (keys[pygame.K_DOWN]):
-        vel = (0, 1)
+    if keys[pygame.K_RIGHT]:
+        velocity = (1, 0)
+    elif keys[pygame.K_LEFT]:
+        velocity = (-1, 0)
+    elif keys[pygame.K_UP]:
+        velocity = (0, -1)
+    elif keys[pygame.K_DOWN]:
+        velocity = (0, 1)
     else:
-        vel = (0, 0)
-    
+        velocity = (0, 0)
+
     # Send updates to server every TICK_INTERVAL milliseconds
-    if tick_timeout > TICK_INTERVAL and vel != (0, 0):
-        network.message.send_msg(s, str.encode(json.dumps(vel)))
+    if tick_timeout > TICK_INTERVAL and velocity != (0, 0):
+        network.message.send_msg(client_socket, str.encode(json.dumps(velocity)))
         tick_timeout = 0
 
+    # Handle exit
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+
     pygame.display.flip()
+    
