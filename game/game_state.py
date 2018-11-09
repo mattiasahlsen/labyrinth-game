@@ -50,4 +50,3 @@ class Game_State:
 
             self.players[n].x = player['x']
             self.players[n].y = player['y']
-            

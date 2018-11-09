@@ -132,7 +132,11 @@ disable=print-statement,
         invalid-name,
         redefined-outer-name,
         C0330,
-        C0301
+        C0301,
+        no-member,
+        too-many-instance-attributes,
+        wildcard-import,
+        unused-wildcard-import
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

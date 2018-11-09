@@ -1,7 +1,9 @@
+import os
 import pygame
-from graphics.colors import *
+from graphics.colors import BOX_INACTIVE, BOX_ACTIVE
 
 FONT_SIZE = 18
+DIR = os.path.dirname(os.path.realpath(__file__))
 
 class InputBox:
     def __init__(self, x, y, w, text):
@@ -9,7 +11,7 @@ class InputBox:
         self.color = BOX_INACTIVE
         self.desc = text + ': '
         self.text = ''
-        self.font = pygame.font.Font('graphics/res/fonts/Montserrat-Regular.ttf', FONT_SIZE)
+        self.font = pygame.font.Font(DIR + '/res/fonts/Montserrat-Regular.ttf', FONT_SIZE)
         self.text_surface = self.font.render('', True, self.color)
         self.desc_surface = self.font.render(self.desc, True, self.color)
         self.active = False
@@ -33,6 +35,7 @@ class InputBox:
                     self.text += event.unicode
                 # Re-render the text.
                 self.text_surface = self.font.render(self.text, True, self.color)
+        return None
 
     def update(self):
         # Resize the box if the text is too long.

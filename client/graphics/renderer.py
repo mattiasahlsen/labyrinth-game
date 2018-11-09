@@ -1,5 +1,4 @@
 import pygame
-import graphics.input_box
 from graphics.colors import *
 
 class Renderer:
@@ -16,7 +15,7 @@ class Renderer:
         self.screen.fill(BACKGROUND)
         self.input_box.update()
         self.input_box.draw(self.screen)
-    
+
     def init_game(self, game_state):
         self.game = game_state
         self.maze = self.game.maze

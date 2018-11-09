@@ -1,7 +1,7 @@
 import socket
 import json
 import pygame
-from game import *
+from game import maze, game_state
 import network.message
 
 # Networking constants
@@ -54,8 +54,6 @@ def game_loop():
         if time_since_movement > MOVEMENT_TIMEOUT:
             for i in range(PLAYERS):
                 game.set_vel(i, velocities[i])
-
-            print("Game state: " + str(game.state_as_json()))
 
             game.tick()
             time_since_movement = 0

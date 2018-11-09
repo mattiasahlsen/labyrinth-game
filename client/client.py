@@ -3,9 +3,9 @@ import socket
 import json
 import pygame
 import network.message
-from game import *
 from graphics import renderer
 from graphics import input_box
+from game import game_state, maze
 
 # Network constants
 SERVER_IP = ''
@@ -36,7 +36,7 @@ while True:
             sys.exit()
         SERVER_IP = input_box.handle_event(event)
 
-    # Validate entered IP    
+    # Validate entered IP
     if SERVER_IP:
         if SERVER_IP == 'localhost':
             break
@@ -121,4 +121,3 @@ while 1:
             sys.exit()
 
     pygame.display.flip()
-    
