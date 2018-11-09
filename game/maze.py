@@ -30,7 +30,7 @@ class Maze:
         self.goal               = data['goal']
         self.maze               = data['bit_array']
 
-def random_maze(width=100, complexity=.1, density=.1, players=4):
+def random_maze(width=100, complexity=.8, density=.8, players=4):
     print('Generating maze walls...')
     two_d_array = sub_maze(width, complexity, density)
 
@@ -40,12 +40,12 @@ def random_maze(width=100, complexity=.1, density=.1, players=4):
         for bit in row:
             bit_array.append(bit)
 
-    goal = goal_pos(bit_array, (width // 2) * 2 + 1)
+    goal = goal_pos(bit_array, len(two_d_array))
     print('Generating starting positions...')
     start_pos = starting_positions(two_d_array, players, goal)
     print(str(start_pos))
     j = dict([
-        ('width', (width // 2) * 2 + 1),
+        ('width', len(two_d_array)),
         ('max_players', players),
         ('starting_locations', start_pos),
         ('goal', goal),
@@ -57,6 +57,7 @@ def random_maze(width=100, complexity=.1, density=.1, players=4):
 # sub_maze() returns a 2-d array of bits
 def sub_maze(width, complexity, density):
     # Only odd shapes
+    width = width // 2
     shape = ((width // 2) * 2 + 1, (width // 2) * 2 + 1)
     # Adjust complexity and density relative to maze size
     complexity = int(complexity * (5 * (shape[0] + shape[1]))) # number of components
@@ -84,7 +85,55 @@ def sub_maze(width, complexity, density):
                     Z[y_][x_] = 1
                     Z[y_ + (y - y_) // 2][x_ + (x - x_) // 2] = 1
                     x, y = x_, y_
-    return Z
+    
+    return explode(Z)
+
+def explode(array, factor=2):
+    new_array = []
+    new_length = len(array) * factor
+    for i in range(new_length):
+        new_array.append([])
+        for j in range(new_length):
+            old_x = j // factor
+            old_y = i // factor
+            if not array[old_y][old_x]:
+                new_array[i].append(0)
+                continue
+                            
+            val = 0
+            if old_x == 0 or old_x == len(array) - 1:
+                if old_x == 0:
+                    if j % factor == 2:
+                        val = 0
+                    else:
+                        val = 1
+                else:
+                    if j % factor == 0:
+                        val = 0
+                    else:
+                        val = 1
+            elif old_y == 0 or old_y == len(array) - 1:
+                val = 1
+            elif j % factor == 0 and (i % factor == 0 or i % factor == 2):
+                val = 0
+            elif j % factor == 2 and (i % factor == 0 or i % factor == 2):
+                val = 0
+            elif j % factor == 1 and i % factor == 1:
+                val = 1
+            elif j % factor == 1 and i % factor == 0 and array[old_y - 1][old_x]:
+                val = 1
+            elif j % factor == 2 and i % factor == 1 and array[old_y][old_x + 1]:
+                val = 1
+            elif j % factor == 1 and i % factor == 2 and array[old_y + 1][old_x]:
+                val = 1
+            elif j % factor == 0 and i % factor == 1 and array[old_y][old_x - 1]:
+                val = 1
+            else:
+                val = 0
+
+            new_array[i].append(val)
+        
+    return new_array
 
 def goal_pos(array, width):
     goal = (width // 2, width // 2)
