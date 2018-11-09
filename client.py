@@ -62,6 +62,7 @@ maze = maze.Maze(msg.decode())
 # Wait for starting positions
 msg = network.message.recv_msg(client_socket)
 data = json.loads(msg.decode())
+my_number = data['player_number']
 
 # Game state object
 game = game_state.Game_State(data['player_amount'], maze)
@@ -110,6 +111,8 @@ while 1:
     # Send updates to server every TICK_INTERVAL milliseconds
     if tick_timeout > TICK_INTERVAL and velocity != (0, 0):
         network.message.send_msg(client_socket, str.encode(json.dumps(velocity)))
+        game.set_vel(my_number, velocity)
+        game.tick()
         tick_timeout = 0
 
     # Handle exit
