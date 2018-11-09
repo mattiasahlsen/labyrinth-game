@@ -31,6 +31,7 @@ class Maze:
         self.maze               = data['bit_array']
 
 def random_maze(width=100, complexity=.1, density=.1, players=4):
+    print('Generating maze walls...')
     two_d_array = sub_maze(width, complexity, density)
 
     # Convert 2D array to 1D array
@@ -40,8 +41,9 @@ def random_maze(width=100, complexity=.1, density=.1, players=4):
             bit_array.append(bit)
 
     goal = goal_pos(bit_array, (width // 2) * 2 + 1)
+    print('Generating starting positions...')
     start_pos = starting_positions(two_d_array, players, goal)
-
+    print(str(start_pos))
     j = dict([
         ('width', (width // 2) * 2 + 1),
         ('max_players', players),
@@ -49,7 +51,7 @@ def random_maze(width=100, complexity=.1, density=.1, players=4):
         ('goal', goal),
         ('bit_array', bit_array)
     ])
-
+    print('Maze done!')
     return Maze(json.dumps(j))
 
 # sub_maze() returns a 2-d array of bits
@@ -98,12 +100,18 @@ def starting_positions(array, players, goal):
     position = goal
     for i in range(players):
         steps = 0
-        while steps < len(array) * 100:
+        max_dist = -1
+        max_dist_pos = (-1, -1)
+        while steps < len(array) * 1000:
             vel = (randint(0, 2) - 1, randint(0, 2) - 1)
 
             while position[1] + vel[1] >= len(array) or position[1] + vel[1] < 0 or position[0] + vel[0] >= len(array) or position[0] + vel[0] < 0 or array[position[1] + vel[1]][position[0] + vel[0]]:
                 vel = (randint(0, 2) - 1, randint(0, 2) - 1)
             position = (position[0] + vel[0], position[1] + vel[1])
             steps += 1
-        positions.append(position)
+            dist = abs(position[0] - goal[0]) + abs(position[1] - goal[1])
+            if dist > max_dist:
+                max_dist = dist
+                max_dist_pos = position
+        positions.append(max_dist_pos)
     return positions
