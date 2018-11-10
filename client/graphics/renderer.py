@@ -1,7 +1,7 @@
 import math
 import pygame
 from graphics.colors import *
-from sprite import Sprite
+from .sprite import Sprite
 
 from config import GAME_WIDTH, TICK_RATE
 from client_config import FRAME_RATE, WINDOW_WIDTH, BLOCKS_PER_SEC
@@ -14,8 +14,6 @@ class Renderer:
         self.screen = screen
         self.res = res
 
-        self.game = None
-        self.maze = None
         self.width = None
         self.pixel_positions = []
 
@@ -40,19 +38,12 @@ class Renderer:
         for player in game.players:
             self.sprites.add(Sprite(game, player, self.block_size, self.walls))
 
-    """
-    def render_walls(self):
-        self.screen.fill(BLACK)
-        for wall in self.walls:
-            pygame.draw.rect(self.screen, WHITE, wall, 0)
-
-        pygame.draw.rect(self.screen, YELLOW,
-                        (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
-    """
-
     def render_game(self):
         self.sprites.update()
-        self.sprites.clear(self.screen, BLACK)
+
+        def background(surf, rect):
+            surf.fill(BLACK, rect)
+        self.sprites.clear(self.screen, background)
         self.sprites.draw(self.screen)
 
     def finish(self):

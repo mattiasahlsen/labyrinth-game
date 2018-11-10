@@ -6,9 +6,11 @@ import pygame
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
 from config import TICK_RATE # updates from server per second
 
+
 # globals
 DIR = os.path.dirname(os.path.realpath(__file__))
 FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
+SPRITE_UPDATE_INTERVAL = math.floor(FRAME_RATE / 8)
 
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, game, player, block_size, walls):
@@ -29,18 +31,22 @@ class Sprite(pygame.sprite.Sprite):
         get_image = lambda n: os.path.join(DIR, 'sprites/sprites/elf_f_run_anim_f' + str(n) + '.png')
         self.images = []
         for n in range(0, 4):
-            self.images.append(get_image(n))
+            self.images.append(pygame.image.load(get_image(n)))
         self.image_number = 0
         self.image = self.images[self.image_number]
+        self.update_sprite = 1 # when it's 0, update sprite
 
         self.rect = pygame.Rect(self.player.x, self.player.y, block_size, block_size)
 
     def update(self):
-        self.image_number = (self.image_number + 1) % 4
-        self.image = self.image[self.image_number]
+        if self.update_sprite == 0:
+            self.image_number = (self.image_number + 1) % 4
+            self.image = self.images[self.image_number]
+        self.update_sprite = (self.update_sprite + 1) % SPRITE_UPDATE_INTERVAL
 
         if self.player.local:
             if self.player.illegal_move:
+                print('check 1')
                 self.player.illegal_move = False
                 (self.x, self.y) = self.to_coords((self.player.x, self.player.y))
 
@@ -48,13 +54,14 @@ class Sprite(pygame.sprite.Sprite):
                                         self.block_size, self.block_size)
 
             else:
-                self.x += self.pixels_per_frame * self.vel[0]
-                self.y += self.pixels_per_frame * self.vel[1]
+                self.x += self.pixels_per_frame * self.player.vel[0]
+                self.y += self.pixels_per_frame * self.player.vel[1]
                 self.rect = pygame.Rect(round(self.x), round(self.y),
                                         self.block_size, self.block_size)
 
                 collision = self.rect.collidelist(self.walls)
                 if collision != -1:
+                    print('check 2')
                     collision = self.walls[collision]
                     if self.player.vel[0] == 1:
                         self.x = collision.x - collision.w

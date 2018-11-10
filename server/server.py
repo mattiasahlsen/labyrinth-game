@@ -12,11 +12,10 @@ import network.message
 import server_config
 import config
 
+PLAYERS = int(input('Number of players: '))            # amount of players
+maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
 game = game_state.GameState(PLAYERS, maze)
 
-# Game related
-print('Amount of players: ', end='')
-PLAYERS = int(input())            # amount of players
 
 def wait_players():
     port = config.SERVER_PORT
@@ -95,7 +94,6 @@ def game_loop():
     for client in clients:
         client[0].close()
 
-maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
 
 # Wait for all players to connect
 clients = wait_players()

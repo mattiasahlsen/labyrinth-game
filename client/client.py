@@ -26,41 +26,13 @@ SERVER_IP = input('IP of server: ')
 client_socket = connect(SERVER_IP, config.SERVER_PORT)
 
 # global variables
-width = client_config.WINDOW_WIDTH
+WIDTH = client_config.WINDOW_WIDTH
 
 
 # Initialize pygame rendering and time-management
 pygame.init()
-screen = pygame.display.set_mode((width, width))
+screen = pygame.display.set_mode((WIDTH, WIDTH))
 clock = pygame.time.Clock()
-
-renderer = renderer.Renderer(screen, width, input_box)
-
-
-"""
-while True:
-    clock.tick(client_config.FRAME_RATE)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            sys.exit()
-        SERVER_IP = input_box.handle_event(event)
-
-    # Validate entered IP
-    if SERVER_IP:
-        if SERVER_IP == 'localhost':
-            break
-        try:
-            socket.inet_aton(SERVER_IP)
-            break
-        except socket.error:
-            continue
-
-    renderer.render_connect_screen()
-    pygame.display.flip()
-
-pygame.display.flip()
-"""
-
 
 # Wait for maze
 msg = network.message.recv_msg(client_socket)
@@ -73,7 +45,7 @@ my_number = data['player_number']
 
 # Game state object
 game = game_state.LocalGameState(data['player_amount'], maze, my_number)
-renderer.init_game(game)
+renderer = renderer.Renderer(screen, WIDTH, game)
 
 velocity = (0, 0)
 game_pos = game.players[my_number].current_pos()
@@ -124,7 +96,7 @@ while 1:
         network.message.send_msg(client_socket, str.encode(game.to_json()))
 
     # Send updates to server every TICK_INTERVAL milliseconds
-    if tick_timeout > client_config.TICK_INTERVAL:
+    if tick_timeout > 1000 / client_config.BLOCKS_PER_SEC:
         tick_timeout = 0
 
     # Handle exit
