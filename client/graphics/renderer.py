@@ -17,7 +17,7 @@ class Renderer:
         self.game = None
         self.maze = None
         self.width = None
-        self.pixelPositions = []
+        self.pixel_positions = []
 
     def render_connect_screen(self):
         self.screen.fill(BACKGROUND)
@@ -29,10 +29,10 @@ class Renderer:
         self.maze = self.game.maze
         self.width = self.maze.width
         self.block_size = self.res / self.width
-        self.pixelPositions = [None] * len(game_state.players)
+        self.pixel_positions = [None] * len(game_state.players)
 
         for player in game_state.players:
-            self.pixelPositions[player.player_number] = self.toPixels((player.x, player.y))
+            self.pixel_positions[player.player_number] = self.to_pixels((player.x, player.y))
 
     def render_game(self):
         self.screen.fill(BLACK)
@@ -49,11 +49,21 @@ class Renderer:
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
 
         for player in self.game.players:
-            (x, y) =  self.pixelPositions[player.player_number]
-            (x0, y0) = self.toPixels((player.x, player.y))
-            x += round((x0 - x) / FRAMES_PER_TICK)
-            y += round((y0 - y) / FRAMES_PER_TICK)
-            self.pixelPositions[player.player_number] = (x, y)
+            (x, y) =  self.pixel_positions[player.player_number]
+            (x0, y0) = self.to_pixels((player.x, player.y))
+            if (player.vel == (0, 0) or
+                (abs(x0 - x) > self.block_size or abs(y0 - y) > self.block_size)
+            ):
+                x = x0
+                y = y0
+            else:
+                x += round(player.vel[0] * self.block_size / FRAMES_PER_TICK)
+                y += round(player.vel[1] * self.block_size / FRAMES_PER_TICK)
+                if not self.legal_move_pixels((x, y)):
+                    x = x0
+                    y = y0
+
+            self.pixel_positions[player.player_number] = (x, y)
             pygame.draw.rect(self.screen, RED, (x, y, self.block_size, self.block_size), 0)
 
     def finish(self):
@@ -67,8 +77,16 @@ class Renderer:
 
         self.screen.blit(textsurface, center)
 
-    def toPixels(self, coords):
+    def to_pixels(self, coords):
         return (
             math.floor(coords[0] / self.width * self.res),
             math.floor(coords[1] / self.width * self.res)
         )
+    def to_coords(self, pixels):
+        return (
+            math.floor(pixels[0] / self.res * self.width),
+            math.floor(pixels[1] / self.res * self.width)
+        )
+
+    def legal_move_pixels(self, pixels):
+        return self.game.legal_move(self.to_coords(pixels))

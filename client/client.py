@@ -112,10 +112,11 @@ while 1:
     else:
         velocity = (0, 0)
 
+    game.set_vel(my_number, velocity)
+
     # Send updates to server every TICK_INTERVAL milliseconds
     if tick_timeout > client_config.TICK_INTERVAL and velocity != (0, 0):
         network.message.send_msg(client_socket, str.encode(json.dumps(velocity)))
-        game.set_vel(my_number, velocity)
         game.tick()
         tick_timeout = 0
 

@@ -32,7 +32,6 @@ class Game_State:
             if player.x == self.maze.goal[0] and player.y == self.maze.goal[1]:
                 self.game_over = True
                 self.winners.append(player.player_number)
-            player.vel = (0, 0)
 
     def state_to_json(self):
         player_jsons = []

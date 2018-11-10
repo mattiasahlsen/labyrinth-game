@@ -90,7 +90,7 @@ def goal_pos(array, width):
     goal = (width // 2, width // 2)
 
     while array[goal[1] * width + goal[0]]:
-        goal = (goal[0], goal[1] + 1)        
+        goal = (goal[0], goal[1] + 1)
 
     return goal
 
