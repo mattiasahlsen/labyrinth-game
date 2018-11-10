@@ -30,7 +30,7 @@ class Maze:
         self.goal               = data['goal']
         self.maze               = data['bit_array']
 
-def random_maze(width=100, complexity=.8, density=.8, players=4):
+def random_maze(width=150, complexity=.5, density=.8, players=4):
     print('Generating maze walls...')
     two_d_array = sub_maze(width, complexity, density)
 
@@ -43,7 +43,7 @@ def random_maze(width=100, complexity=.8, density=.8, players=4):
     goal = goal_pos(bit_array, len(two_d_array))
     print('Generating starting positions...')
     start_pos = starting_positions(two_d_array, players, goal)
-    print(str(start_pos))
+    
     j = dict([
         ('width', len(two_d_array)),
         ('max_players', players),
@@ -99,19 +99,10 @@ def explode(array, factor=2):
             if not array[old_y][old_x]:
                 new_array[i].append(0)
                 continue
-                            
+              
             val = 0
             if old_x == 0 or old_x == len(array) - 1:
-                if old_x == 0:
-                    if j % factor == 2:
-                        val = 0
-                    else:
-                        val = 1
-                else:
-                    if j % factor == 0:
-                        val = 0
-                    else:
-                        val = 1
+                val = 1
             elif old_y == 0 or old_y == len(array) - 1:
                 val = 1
             elif j % factor == 0 and (i % factor == 0 or i % factor == 2):
