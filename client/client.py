@@ -69,10 +69,11 @@ data = json.loads(msg.decode())
 my_number = data['player_number']
 
 # Game state object
-game = game_state.Game_State(data['player_amount'], maze)
+game = game_state.Game_State(data['player_amount'], maze, my_number)
 renderer.init_game(game)
 
 velocity = (0, 0)
+game_pos = game.players[my_number].current_pos()
 tick_timeout = 0
 client_socket.setblocking(False)
 
@@ -91,6 +92,10 @@ while 1:
                 game.from_json(msg)
     except BlockingIOError:
         pass
+
+    if game.illegal_movement:
+        renderer.pixel_positions[my_number] = renderer.to_pixels(game.players[my_number].current_pos())
+        game.illegal_movement = False
 
     # Render graphics
     if game.winners:
@@ -114,10 +119,12 @@ while 1:
 
     game.set_vel(my_number, velocity)
 
+    if game_pos != game.players[my_number].current_pos():
+        game_pos = game.players[my_number].current_pos()
+        network.message.send_msg(client_socket, str.encode(game.client_to_json()))
+
     # Send updates to server every TICK_INTERVAL milliseconds
-    if tick_timeout > client_config.TICK_INTERVAL and velocity != (0, 0):
-        network.message.send_msg(client_socket, str.encode(json.dumps(velocity)))
-        game.tick()
+    if tick_timeout > client_config.TICK_INTERVAL:
         tick_timeout = 0
 
     # Handle exit

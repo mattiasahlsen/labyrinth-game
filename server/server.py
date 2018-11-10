@@ -12,9 +12,6 @@ import network.message
 import server_config
 import config
 
-
-# Networking constants
-
 # Game related
 print('Amount of players: ', end='')
 PLAYERS = int(input())            # amount of players
@@ -35,37 +32,50 @@ def wait_players():
 def game_loop():
     pygame.init()
     clock = pygame.time.Clock()
-    time_since_movement = 0
 
-    velocities = dict()
+    time_since_transmission = 0
+    time_since_update = dict()
+    illegal_movements = dict()      # if any value is set in this dictionary, the client has moved illegaly
+    ma = []                         # moving averages of time between packets for all clients
     for i in range(PLAYERS):
-        velocities[i] = (0, 0)
+        time_since_update[i] = 0
+        illegal_movements[i] = False
+        ma.append(server_config.MOVEMENT_TIMEOUT + 20)
 
     while True:
         # Time
         clock.tick(server_config.TICK_RATE)
-        time_since_movement += clock.get_time()
-
+        for i in range(PLAYERS):
+            time_since_update[i] += clock.get_time()
+        time_since_transmission += clock.get_time()
+        print(str(game.state_to_json()))
         # Read all sockets
         for i in range(PLAYERS):
             try:
                 buf = network.message.recv_msg(clients[i][0])
                 buf = buf.decode()
                 if buf:
-                    velocities[i] = json.loads(buf)
+                    
+                    ma[i] = 0.75 * ma[i] + 0.25 * time_since_update[i]
+                    if ma[i] > server_config.MOVEMENT_TIMEOUT:
+                        illegal_movements[i] = not game.client_from_json(buf)
+                    else:
+                        illegal_movements[i] = True
+                    time_since_update[i] = 0
             except BlockingIOError:
                 pass
-
-        if time_since_movement > server_config.MOVEMENT_TIMEOUT:
+        
+        if time_since_transmission > server_config.MOVEMENT_TIMEOUT:
+            time_since_transmission = 0
             for i in range(PLAYERS):
-                game.set_vel(i, velocities[i])
+                if illegal_movements[i]:
+                    encoded_message = str.encode(game.state_to_json())                    
+                else:
+                    encoded_message = str.encode(game.state_to_json(i))
 
-            game.tick()
-            time_since_movement = 0
-            for i in range(PLAYERS):
-                network.message.send_msg(clients[i][0], str.encode(game.state_to_json()))
-                velocities[i] = (0, 0)
-
+                network.message.send_msg(clients[i][0], encoded_message)
+                illegal_movements[i] = False
+        
             if game.winners:
                 break
 

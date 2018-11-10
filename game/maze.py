@@ -27,7 +27,7 @@ class Maze:
         self.width              = data['width']
         self.max_players        = data['max_players']
         self.starting_locations = data['starting_locations']
-        self.goal               = data['goal']
+        self.goal               = data['goal'][0], data['goal'][1]
         self.maze               = data['bit_array']
 
 def random_maze(width=150, complexity=.5, density=.8, players=4):
