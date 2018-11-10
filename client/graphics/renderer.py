@@ -12,6 +12,7 @@ FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
 class Renderer:
     def __init__(self, screen, res, game):
         self.screen = screen
+        screen.fill(BLACK)
         self.res = res
 
         self.width = None
@@ -41,8 +42,27 @@ class Renderer:
     def render_game(self):
         self.sprites.update()
 
+        # reset background behind the sprite
         def background(surf, rect):
             surf.fill(BLACK, rect)
+            (x, y, width, height) = rect
+            x_margin = x % self.block_size
+            y_margin = y % self.block_size
+            x -= x_margin
+            y -= y_margin
+            width = width + x_margin
+            height = height + y_margin
+            if not width % self.block_size == 0:
+                width += self.block_size - width % self.block_size
+            if not height % self.block_size == 0:
+                height += self.block_size - height % self.block_size
+
+            for i in range(0, int(width / self.block_size)):
+                for j in range(0, int(height / self.block_size)):
+                    if self.maze.maze[int((y // self.block_size + j) * self.width + x // self.block_size + i)]:
+                        pygame.draw.rect(self.screen, WHITE, (int(x) + i * self.block_size, int(y) + j * self.block_size, self.block_size, self.block_size), 0)
+
+
         self.sprites.clear(self.screen, background)
         self.sprites.draw(self.screen)
 
