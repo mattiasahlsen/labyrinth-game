@@ -56,7 +56,7 @@ def game_loop():
 
     while True:
         # Time
-        clock.tick(server_config.TICK_RATE)
+        clock.tick(config.TICK_RATE)
         for i in range(PLAYERS):
             time_since_update[i] += clock.get_time()
         time_since_transmission += clock.get_time()

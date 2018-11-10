@@ -31,6 +31,7 @@ class Renderer:
         self.block_size = self.res / self.width
         self.pixels_per_frame = 1000 * self.block_size / (FRAME_RATE * TICK_INTERVAL)
         self.pixel_positions = [None] * len(game_state.players)
+
         self.local_player = game_state.local_player
 
         for player in game_state.players:

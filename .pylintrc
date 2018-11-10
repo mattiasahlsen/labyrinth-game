@@ -139,7 +139,8 @@ disable=print-statement,
         unused-wildcard-import,
         wrong-import-position,
         unused-import,
-        too-many-branches
+        too-many-branches,
+        wrong-import-order
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

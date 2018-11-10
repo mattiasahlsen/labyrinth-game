@@ -1,4 +1,4 @@
 FRAME_RATE = 60
-TICK_INTERVAL = 50
+BLOCKS_PER_SEC = 20
 WINDOW_WIDTH = 816# width of window (in pixels)
 WINDOW_HEIGHT = 816

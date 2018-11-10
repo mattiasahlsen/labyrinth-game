@@ -1,9 +1,14 @@
-class Player:
+import os.path
+import pygame
+
+
+class Player(pygame.sprite.Sprite):
     def __init__(self, player_number, location):
         self.player_number = player_number
         self.x = location[0]
         self.y = location[1]
         self.vel = (0, 0)
+
 
     def move(self):
         self.x += self.vel[0]
@@ -12,7 +17,7 @@ class Player:
     def move_to(self, destination):
         self.x = destination[0]
         self.y = destination[1]
-    
+
     def current_pos(self):
         return (self.x, self.y)
 
