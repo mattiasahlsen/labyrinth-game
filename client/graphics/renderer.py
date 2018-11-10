@@ -34,7 +34,7 @@ class Renderer:
         self.local_player = game_state.local_player
 
         for player in game_state.players:
-            self.pixel_positions[player.player_number] = self.to_pixels((player.x, player.y))
+            self.pixel_positions[player.id] = self.to_pixels((player.x, player.y))
 
     def render_game(self):
         self.screen.fill(BLACK)
@@ -51,7 +51,7 @@ class Renderer:
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
 
         for player in self.game.players:
-            if player.player_number == self.local_player:
+            if player.id == self.local_player:
                 x, y = self.pixel_positions[self.local_player]
                 x += math.floor(player.vel[0] * self.pixels_per_frame)
                 y += math.floor(player.vel[1] * self.pixels_per_frame)
@@ -80,22 +80,6 @@ class Renderer:
                 player.x = new_coords[0]
                 player.y = new_coords[1]
             else:
-                """
-                (x, y) =  self.pixel_positions[player.player_number]
-                (x0, y0) = self.to_pixels((player.x, player.y))
-                if (player.vel == (0, 0) or
-                    (abs(x0 - x) > self.block_size or abs(y0 - y) > self.block_size)
-                ):
-                    x = x0
-                    y = y0
-                else:
-                    x += round(player.vel[0] * self.block_size / FRAMES_PER_TICK)
-                    y += round(player.vel[1] * self.block_size / FRAMES_PER_TICK)
-                    if not self.legal_move_pixels((x, y)):
-                        x = x0
-                        y = y0
-
-                self.pixel_positions[player.player_number] = (x, y)"""
                 pygame.draw.rect(self.screen, RED, (player.x * self.block_size, player.y * self.block_size, self.block_size, self.block_size), 0)
 
     def finish(self):

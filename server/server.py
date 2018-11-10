@@ -48,7 +48,7 @@ def game_loop():
         for i in range(PLAYERS):
             time_since_update[i] += clock.get_time()
         time_since_transmission += clock.get_time()
-        print(str(game.state_to_json()))
+        print(str(game.to_json()))
         # Read all sockets
         for i in range(PLAYERS):
             try:
@@ -58,7 +58,7 @@ def game_loop():
                     
                     ma[i] = 0.75 * ma[i] + 0.25 * time_since_update[i]
                     if ma[i] > server_config.MOVEMENT_TIMEOUT:
-                        illegal_movements[i] = not game.client_from_json(buf)
+                        illegal_movements[i] = not game.from_json(buf)
                     else:
                         illegal_movements[i] = True
                     time_since_update[i] = 0
@@ -69,9 +69,9 @@ def game_loop():
             time_since_transmission = 0
             for i in range(PLAYERS):
                 if illegal_movements[i]:
-                    encoded_message = str.encode(game.state_to_json())                    
+                    encoded_message = str.encode(game.to_json())                    
                 else:
-                    encoded_message = str.encode(game.state_to_json(i))
+                    encoded_message = str.encode(game.to_json(i))
 
                 network.message.send_msg(clients[i][0], encoded_message)
                 illegal_movements[i] = False
@@ -84,7 +84,7 @@ def game_loop():
         client[0].close()
 
 maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
-game = game_state.Game_State(PLAYERS, maze)
+game = game_state.GameState(PLAYERS, maze)
 
 # Wait for all players to connect
 clients = wait_players()
