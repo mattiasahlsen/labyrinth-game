@@ -1,103 +1,59 @@
 import math
 import pygame
 from graphics.colors import *
+from sprite import Sprite
 
-from config import GAME_WIDTH
-from client_config import FRAME_RATE, TICK_INTERVAL, WINDOW_WIDTH
+from config import GAME_WIDTH, TICK_RATE
+from client_config import FRAME_RATE, WINDOW_WIDTH, BLOCKS_PER_SEC
 
 # globals
-FRAMES_PER_TICK = TICK_INTERVAL / (1000 / FRAME_RATE)
+FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
 
 class Renderer:
-    def __init__(self, screen, res, input_box):
+    def __init__(self, screen, res, game):
         self.screen = screen
         self.res = res
-        self.input_box = input_box
-        self.block_size = None
+
         self.game = None
         self.maze = None
         self.width = None
         self.pixel_positions = []
 
-    def render_connect_screen(self):
-        self.screen.fill(BACKGROUND)
-        self.input_box.update()
-        self.input_box.draw(self.screen)
-
-    def init_game(self, game_state):
-        self.game = game_state
+        self.game = game
         self.maze = self.game.maze
         self.width = self.maze.width
+
         self.block_size = self.res / self.width
-        self.pixels_per_frame = 1000 * self.block_size / (FRAME_RATE * TICK_INTERVAL)
-        self.pixel_positions = [None] * len(game_state.players)
+        self.pixels_per_frame =  self.block_size * BLOCKS_PER_SEC / FRAME_RATE
 
-        self.local_player = game_state.local_player
 
-        for player in game_state.players:
-            self.pixel_positions[player.player_number] = self.to_pixels((player.x, player.y))
-
-    def render_game(self):
-        self.screen.fill(BLACK)
-        maze_walls = []
+        # draw walls only once
+        self.walls = []
         for y in range(self.width):
             for x in range(self.width):
                 if self.maze.maze[y * self.width + x]:
-                    col = WHITE
-                    maze_walls.append(
-                       pygame.draw.rect(self.screen, col, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
+                    self.walls.append(
+                       pygame.draw.rect(self.screen, WHITE, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                     )
+
+        self.sprites = pygame.sprite.Group()
+        for player in game.players:
+            self.sprites.add(Sprite(game, player, self.block_size, self.walls))
+
+    """
+    def render_walls(self):
+        self.screen.fill(BLACK)
+        for wall in self.walls:
+            pygame.draw.rect(self.screen, WHITE, wall, 0)
 
         pygame.draw.rect(self.screen, YELLOW,
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
+    """
 
-        for player in self.game.players:
-            if player.player_number == self.local_player:
-                x, y = self.pixel_positions[self.local_player]
-                x += math.floor(player.vel[0] * self.pixels_per_frame)
-                y += math.floor(player.vel[1] * self.pixels_per_frame)
-                new_pos = pygame.Rect(x, y, self.block_size, self.block_size)
-
-                collision = new_pos.collidelist(maze_walls)
-                if collision != -1:
-                    collision = maze_walls[collision]
-                    if player.vel[0] == 1:
-                        x = collision.x - collision.w
-                    elif player.vel[0] == -1:
-                        x = collision.x + collision.w
-                    elif player.vel[1] == 1:
-                        y = collision.y - collision.h
-                    elif player.vel[1] == -1:
-                        y = collision.y + collision.h
-                    else:
-                        x, y = self.pixel_positions[self.local_player]
-                    new_pos = pygame.Rect(x, y, self.block_size, self.block_size)
-
-                pygame.draw.rect(self.screen, RED, new_pos, 0)
-
-                self.pixel_positions[self.local_player] = x, y
-                new_coords = self.to_coords(new_pos.center)
-
-                player.x = new_coords[0]
-                player.y = new_coords[1]
-            else:
-                """
-                (x, y) =  self.pixel_positions[player.player_number]
-                (x0, y0) = self.to_pixels((player.x, player.y))
-                if (player.vel == (0, 0) or
-                    (abs(x0 - x) > self.block_size or abs(y0 - y) > self.block_size)
-                ):
-                    x = x0
-                    y = y0
-                else:
-                    x += round(player.vel[0] * self.block_size / FRAMES_PER_TICK)
-                    y += round(player.vel[1] * self.block_size / FRAMES_PER_TICK)
-                    if not self.legal_move_pixels((x, y)):
-                        x = x0
-                        y = y0
-
-                self.pixel_positions[player.player_number] = (x, y)"""
-                pygame.draw.rect(self.screen, RED, (player.x * self.block_size, player.y * self.block_size, self.block_size, self.block_size), 0)
+    def render_game(self):
+        self.sprites.update()
+        self.sprites.clear(self.screen, BLACK)
+        self.sprites.draw(self.screen)
 
     def finish(self):
         winner_text = "Winners: " + str(self.game.winners)

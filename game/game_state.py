@@ -2,20 +2,14 @@ import json
 import math
 from . import player
 
-class Game_State:
-    def __init__(self, player_amount, maze, local_player='-1'):
+class GameState:
+    def __init__(self, player_amount, maze):
         self.maze = maze
         self.player_amount = player_amount
         self.players = []
-        self.game_over = False
         self.winners = []
-        self.illegal_movement = False
-        self.local_player = local_player
         for i in range(player_amount):
-            if i == local_player:
-                self.players.append(player.LocalPlayer(i, maze.starting_locations[i]))
-            else:
-                self.players.append(player.Player(i, maze.starting_locations[i]))
+            self.players.append(player.Player(i, maze.starting_locations[i]))
 
     def set_vel(self, player_number, direction):
         self.players[player_number].vel = direction
@@ -35,51 +29,50 @@ class Game_State:
             return False
         return True
 
-    def tick(self):
-        for player in self.players:
-            if self.legal_move(player.current_pos(), player.next_pos()):
-                player.move()
-            if player.x == self.maze.goal[0] and player.y == self.maze.goal[1]:
-                self.game_over = True
-                self.winners.append(player.player_number)
-
-    # state_to_json is the inverse of from_json
-    # Used by the server to send game state to clients
-    def state_to_json(self, exclude=-1):
+    def to_json(self, exclude=-1):
         player_jsons = []
         for player in self.players:
-            if player.player_number == exclude:
+            if player.id == exclude:
                 continue
             player_jsons.append(player.serializable())
         return json.dumps(dict([('winners', self.winners), ('players', player_jsons)]))
 
     def from_json(self, json_data):
         data = json.loads(json_data)
-        self.winners = data['winners']
-
-        for player in data['players']:
-            n = player['player_number']
-            if n == self.local_player:
-                self.illegal_movement = True
-            self.players[n].x = player['x']
-            self.players[n].y = player['y']
-
-    # client_to_json() packages the local player into json
-    def client_to_json(self):
-        return json.dumps(self.players[self.local_player].serializable())
-
-    # client_from_json() is used by the server to update the position
-    # of the client
-    # Returns true if succesful
-    # Returns false if move is illegal
-    def client_from_json(self, json_data):
-        data = json.loads(json_data)
         new_pos = (data['x'], data['y'])
-        p = self.players[data['player_number']]
+        p = self.players[data['id']]
 
         if self.legal_move(p.current_pos(), new_pos):
             p.move_to(new_pos)
             if new_pos == self.maze.goal:
-                self.winners.append(data['player_number'])
+                self.winners.append(data['id'])
             return True
         return False
+
+class LocalGameState(GameState):
+    def __init__(self, player_amount, maze, local_player_id):
+        self.maze = maze
+        self.player_amount = player_amount
+        self.players = []
+        self.winners = []
+        self.local_player = local_player_id
+        for i in range(player_amount):
+            if (i == local_player_id):
+                self.players.append(player.LocalPlayer(i, maze.starting_locations[i]))
+            else:
+                self.players.append(player.Player(i, maze.starting_locations[i]))
+
+    # client_to_json() packages the local player into json
+    def to_json(self):
+        return json.dumps(self.players[self.local_player].serializable())
+
+    def from_json(self, json_data):
+        data = json.loads(json_data)
+        self.winners = data['winners']
+
+        for player in data['players']:
+            n = player['id']
+            if n == self.local_player:
+                self.players[n].illegal_move = True
+            self.players[n].x = player['x']
+            self.players[n].y = player['y']
