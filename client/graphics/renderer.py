@@ -46,7 +46,7 @@ class Renderer:
                     maze_walls.append(
                        pygame.draw.rect(self.screen, col, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                     )
-                
+
         pygame.draw.rect(self.screen, YELLOW,
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
 
@@ -56,7 +56,7 @@ class Renderer:
                 x += math.floor(player.vel[0] * self.pixels_per_frame)
                 y += math.floor(player.vel[1] * self.pixels_per_frame)
                 new_pos = pygame.Rect(x, y, self.block_size, self.block_size)
-                
+
                 collision = new_pos.collidelist(maze_walls)
                 if collision != -1:
                     collision = maze_walls[collision]
@@ -71,12 +71,12 @@ class Renderer:
                     else:
                         x, y = self.pixel_positions[self.local_player]
                     new_pos = pygame.Rect(x, y, self.block_size, self.block_size)
-                
+
                 pygame.draw.rect(self.screen, RED, new_pos, 0)
-                
+
                 self.pixel_positions[self.local_player] = x, y
                 new_coords = self.to_coords(new_pos.center)
-                
+
                 player.x = new_coords[0]
                 player.y = new_coords[1]
             else:

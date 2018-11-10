@@ -3,6 +3,7 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
+import tkinter
 import socket
 import json
 import pygame
@@ -14,25 +15,29 @@ from game import game_state, maze
 import client_config
 import config
 
-# Network constants
-SERVER_IP = ''
-
-# global variables
-width = client_config.WINDOW_WIDTH
-
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((ip, port))
     return client_socket
+
+# Network constants
+SERVER_IP = input('IP of server: ')
+# Connect to server
+client_socket = connect(SERVER_IP, config.SERVER_PORT)
+
+# global variables
+width = client_config.WINDOW_WIDTH
+
 
 # Initialize pygame rendering and time-management
 pygame.init()
 screen = pygame.display.set_mode((width, width))
 clock = pygame.time.Clock()
 
-input_box = input_box.InputBox(width / 2, width / 2, 80, 'IP address')
 renderer = renderer.Renderer(screen, width, input_box)
 
+
+"""
 while True:
     clock.tick(client_config.FRAME_RATE)
     for event in pygame.event.get():
@@ -53,11 +58,9 @@ while True:
     renderer.render_connect_screen()
     pygame.display.flip()
 
-screen.fill((0, 0, 0))
 pygame.display.flip()
+"""
 
-# Connect to server
-client_socket = connect(SERVER_IP, config.SERVER_PORT)
 
 # Wait for maze
 msg = network.message.recv_msg(client_socket)
@@ -76,6 +79,7 @@ velocity = (0, 0)
 game_pos = game.players[my_number].current_pos()
 tick_timeout = 0
 client_socket.setblocking(False)
+
 
 # Game loop
 while 1:
