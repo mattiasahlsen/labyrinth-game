@@ -35,7 +35,6 @@ class Renderer:
 
         for player in game_state.players:
             self.pixel_positions[player.player_number] = self.to_pixels((player.x, player.y))
-            
 
     def render_game(self):
         self.screen.fill(BLACK)
@@ -51,7 +50,6 @@ class Renderer:
                     col = BLACK
                     pygame.draw.rect(self.screen, col, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                 
-
         pygame.draw.rect(self.screen, YELLOW,
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
 
@@ -84,29 +82,24 @@ class Renderer:
                 
                 player.x = new_coords[0]
                 player.y = new_coords[1]
-                
             else:
-                pygame.draw.rect(self.screen, RED, (player.x * self.block_size, player.y * self.block_size, self.block_size, self.block_size), 0)
-
-
-
-            """(x, y) =  self.pixel_positions[player.player_number]
-            (x0, y0) = self.to_pixels((player.x, player.y))
-            if (player.vel == (0, 0) or
-                (abs(x0 - x) > self.block_size or abs(y0 - y) > self.block_size)
-            ):
-                x = x0
-                y = y0
-            else:
-                x += round(player.vel[0] * self.block_size / FRAMES_PER_TICK)
-                y += round(player.vel[1] * self.block_size / FRAMES_PER_TICK)
-                if not self.legal_move_pixels((x, y)):
+                """
+                (x, y) =  self.pixel_positions[player.player_number]
+                (x0, y0) = self.to_pixels((player.x, player.y))
+                if (player.vel == (0, 0) or
+                    (abs(x0 - x) > self.block_size or abs(y0 - y) > self.block_size)
+                ):
                     x = x0
                     y = y0
+                else:
+                    x += round(player.vel[0] * self.block_size / FRAMES_PER_TICK)
+                    y += round(player.vel[1] * self.block_size / FRAMES_PER_TICK)
+                    if not self.legal_move_pixels((x, y)):
+                        x = x0
+                        y = y0
 
-            self.pixel_positions[player.player_number] = (x, y)
-            
-        """
+                self.pixel_positions[player.player_number] = (x, y)"""
+                pygame.draw.rect(self.screen, RED, (player.x * self.block_size, player.y * self.block_size, self.block_size, self.block_size), 0)
 
     def finish(self):
         winner_text = "Winners: " + str(self.game.winners)
@@ -129,6 +122,3 @@ class Renderer:
             math.floor(pixels[0] / self.res * self.width),
             math.floor(pixels[1] / self.res * self.width)
         )
-
-    def legal_move_pixels(self, pixels):
-        return self.game.legal_move(self.to_coords(pixels))
