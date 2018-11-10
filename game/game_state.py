@@ -1,4 +1,5 @@
 import json
+import math
 from . import player
 
 class Game_State:
@@ -22,7 +23,9 @@ class Game_State:
     def legal_move(self, old_pos, next_pos):
         x = next_pos[0]
         y = next_pos[1]
-        if abs(x - old_pos[0]) + abs(y - old_pos[1]) > 2:
+        if not (isinstance(x, int) and isinstance(y, int)):
+            return False
+        if abs(x - old_pos[0]) + abs(y - old_pos[1]) > 1:
             return False
         # Out of bounds
         if x < 0 or x >= self.maze.width or y < 0 or y >= self.maze.width:
