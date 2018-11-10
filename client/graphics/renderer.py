@@ -46,9 +46,6 @@ class Renderer:
                     maze_walls.append(
                        pygame.draw.rect(self.screen, col, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                     )
-                else: 
-                    col = BLACK
-                    pygame.draw.rect(self.screen, col, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                 
         pygame.draw.rect(self.screen, YELLOW,
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)

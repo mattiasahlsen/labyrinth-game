@@ -1,4 +1,4 @@
 FRAME_RATE = 60
 TICK_INTERVAL = 50
-WINDOW_WIDTH = 750 # width of window (in pixels)
-WINDOW_HEIGHT = 750
+WINDOW_WIDTH = 816# width of window (in pixels)
+WINDOW_HEIGHT = 816
