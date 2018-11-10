@@ -73,7 +73,7 @@ def game_loop():
     for client in clients:
         client[0].close()
 
-maze = maze.random_maze(config.GAME_WIDTH)
+maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
 game = game_state.Game_State(PLAYERS, maze)
 
 # Wait for all players to connect
