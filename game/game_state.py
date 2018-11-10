@@ -47,22 +47,15 @@ class GameState:
         return False
 
 class LocalGameState(GameState):
-    def __init__(self, player_amount, maze, local_player_id):
-        self.maze = maze
-        self.player_amount = player_amount
-        self.players = []
-        self.winners = []
-        self.local_player = local_player_id
-        for i in range(player_amount):
-            if (i == local_player_id):
-                self.players.append(player.LocalPlayer(i, maze.starting_locations[i]))
-            else:
-                self.players.append(player.Player(i, maze.starting_locations[i]))
+    def __init__(self, player_amount, maze, local_id):
+        GameState.__init__(self, player_amount, maze)
+        self.local_player = local_id
+        self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id])
     
     # client_to_json() packages the local player into json
     def to_json(self):
         return json.dumps(self.players[self.local_player].serializable())
-    
+
     def from_json(self, json_data):
         data = json.loads(json_data)
         self.winners = data['winners']
