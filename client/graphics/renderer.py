@@ -1,5 +1,12 @@
+import math
 import pygame
 from graphics.colors import *
+
+from config import GAME_WIDTH
+from client_config import FRAME_RATE, TICK_INTERVAL, WINDOW_WIDTH
+
+# globals
+FRAMES_PER_TICK = TICK_INTERVAL / (1000 / FRAME_RATE)
 
 class Renderer:
     def __init__(self, screen, res, input_box):
@@ -10,6 +17,7 @@ class Renderer:
         self.game = None
         self.maze = None
         self.width = None
+        self.pixelPositions = []
 
     def render_connect_screen(self):
         self.screen.fill(BACKGROUND)
@@ -21,6 +29,10 @@ class Renderer:
         self.maze = self.game.maze
         self.width = self.maze.width
         self.block_size = self.res / self.width
+        self.pixelPositions = [None] * len(game_state.players)
+
+        for player in game_state.players:
+            self.pixelPositions[player.player_number] = self.toPixels((player.x, player.y))
 
     def render_game(self):
         self.screen.fill(BLACK)
@@ -37,7 +49,12 @@ class Renderer:
                         (self.maze.goal[0] * self.block_size, self.maze.goal[1] * self.block_size, self.block_size, self.block_size), 0)
 
         for player in self.game.players:
-            pygame.draw.rect(self.screen, RED, (player.x * self.block_size, player.y * self.block_size, self.block_size, self.block_size), 0)
+            (x, y) =  self.pixelPositions[player.player_number]
+            (x0, y0) = self.toPixels((player.x, player.y))
+            x += round((x0 - x) / FRAMES_PER_TICK)
+            y += round((y0 - y) / FRAMES_PER_TICK)
+            self.pixelPositions[player.player_number] = (x, y)
+            pygame.draw.rect(self.screen, RED, (x, y, self.block_size, self.block_size), 0)
 
     def finish(self):
         winner_text = "Winners: " + str(self.game.winners)
@@ -49,3 +66,9 @@ class Renderer:
         center = (self.res / 2, self.res / 2)
 
         self.screen.blit(textsurface, center)
+
+    def toPixels(self, coords):
+        return (
+            math.floor(coords[0] / self.width * self.res),
+            math.floor(coords[1] / self.width * self.res)
+        )

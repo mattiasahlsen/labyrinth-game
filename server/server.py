@@ -1,26 +1,27 @@
 import sys
 import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
 import socket
 import json
 import pygame
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from game import maze, game_state
 import network.message
 
+import server_config
+import config
+
+
 # Networking constants
-HOST = ''
-PORT = 15000
 
 # Game related
 print('Amount of players: ', end='')
 PLAYERS = int(input())            # amount of players
-MOVEMENT_TIMEOUT = 50   # timeout for moving one unit
-TICK_RATE = 40          # server ticks per second
 
 def wait_players():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((HOST, PORT))
+    server_socket.bind((server_config.HOST, config.SERVER_PORT))
     server_socket.listen(PLAYERS)
 
     clients = []
@@ -42,7 +43,7 @@ def game_loop():
 
     while True:
         # Time
-        clock.tick(TICK_RATE)
+        clock.tick(server_config.TICK_RATE)
         time_since_movement += clock.get_time()
 
         # Read all sockets
@@ -55,7 +56,7 @@ def game_loop():
             except BlockingIOError:
                 pass
 
-        if time_since_movement > MOVEMENT_TIMEOUT:
+        if time_since_movement > server_config.MOVEMENT_TIMEOUT:
             for i in range(PLAYERS):
                 game.set_vel(i, velocities[i])
 
@@ -72,7 +73,7 @@ def game_loop():
     for client in clients:
         client[0].close()
 
-maze = maze.random_maze()
+maze = maze.random_maze(config.GAME_WIDTH)
 game = game_state.Game_State(PLAYERS, maze)
 
 # Wait for all players to connect
