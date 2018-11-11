@@ -47,8 +47,13 @@ class Sprite(pygame.sprite.Sprite):
                                 self.img_width, self.img_height)
 
         self.prio = 'x'
+        self.time_since_server_update = 0
 
     def update(self):
+        clock.tick()
+
+        self.time_since_server_update = clock.get_time()
+
         if self.update_sprite == 0:
             self.image_number = (self.image_number + 1) % 4
             self.image = self.images[self.image_number]
@@ -129,7 +134,7 @@ class Sprite(pygame.sprite.Sprite):
             new_pos = self.to_coords((self.x, self.y))
             if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
                 # can't move in x and y at the same time
-                if clock.get_time() > 1000 / TICK_RATE:
+                if self.time_since_server_update > 1000 / TICK_RATE:
                     if self.prio == 'x':
                         self.player.x = new_pos[0]
                         self.prio = 'y'
@@ -137,11 +142,12 @@ class Sprite(pygame.sprite.Sprite):
                         self.player.y = new_pos[1]
                         self.prio = 'x'
 
-                    clock.tick()
+                    self.time_since_server_update = 0
             elif new_pos != (self.player.x, self.player.y):
                 if clock.get_time() > 1000 / TICK_RATE:
                     self.player.x, self.player.y = new_pos
-                    clock.tick()
+
+                    self.time_since_server_update = 0
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = (realX - self.x) / FRAMES_PER_TICK

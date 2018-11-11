@@ -66,7 +66,7 @@ def game_loop(clients):
     time_since_transmission = 0
 
     while True:
-        clock.tick()
+        clock.tick(config.TICK_RATE)
         time_since_transmission += clock.get_time()
 
         # Read all sockets
@@ -79,7 +79,7 @@ def game_loop(clients):
                         buf = buf.decode()
                         if buf:
                             client['ema'] = WEIGHT * client['ema'] + (1 - WEIGHT) * client['time_since_update']
-                            if client['ema'] > server_config.MOVEMENT_TIMEOUT:
+                            if client['ema'] > server_config.MOVEMENT_TIMEOUT * 0.75:
                                 client['illegal_movements'] = not game.from_json(buf)
                             else:
                                 client['illegal_movements'] = True
