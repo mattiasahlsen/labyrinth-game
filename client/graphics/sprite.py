@@ -25,9 +25,6 @@ class Sprite(pygame.sprite.Sprite):
         self.block_size = block_size
         self.walls = walls
 
-        self.x = player.x * block_size # pixel position
-        self.y = player.y * block_size
-
         get_image = lambda n: os.path.join(DIR, 'sprites/sprites/elf_f_run_anim_f' + str(n) + '.png')
         self.images = []
         for n in range(0, 4):
@@ -36,11 +33,16 @@ class Sprite(pygame.sprite.Sprite):
         self.image = self.images[self.image_number]
         self.update_sprite = 1 # when it's 0, update sprite
 
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
-        self.x_offset = self.width / 2
-        self.y_offset = self.height / 2
-        self.rect = pygame.Rect(self.x, self.y, self.block_size, self.block_size)
+        self.img_width = self.image.get_width()
+        self.img_height = self.image.get_height()
+        self.x_offset = self.img_width / 2
+        self.y_offset = self.img_width * 1.2 # to look better
+
+        self.radius = self.block_size / 2 # pixels to center
+        self.x = player.x * block_size + self.radius # pixel position
+        self.y = player.y * block_size + self.radius
+        self.rect = pygame.Rect(round(self.x - self.x_offset), round(self.y - self.y_offset),
+                                self.img_width, self.img_height)
 
     def update(self):
         if self.update_sprite == 0:
@@ -52,45 +54,56 @@ class Sprite(pygame.sprite.Sprite):
             if self.player.illegal_move:
                 self.player.illegal_move = False
                 (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
-                (self.rect[0], self.rect[1]) = round(self.x), round(self.y)
+                (self.x, self.y) = (self.x + self.radius, self.y + self.radius)
 
             else:
                 self.x += self.pixels_per_frame * self.player.vel[0]
                 self.y += self.pixels_per_frame * self.player.vel[1]
 
                 maze_pixel_width = self.maze.width * self.block_size
-                if self.x < 0:
-                    self.x = 0
-                elif self.x > maze_pixel_width - self.width:
-                    self.x = maze_pixel_width - self.width
-                if self.y < 0:
-                    self.y = 0
-                elif self.y > maze_pixel_width - self.height:
-                    self.y = maze_pixel_width - self.height
+                if self.x - self.radius < 0:
+                    self.x = self.radius
+                elif self.x + self.radius > maze_pixel_width:
+                    self.x = maze_pixel_width - self.radius
+                if self.y - self.radius < 0:
+                    self.y = self.radius
+                elif self.y + self.radius > maze_pixel_width:
+                    self.y = maze_pixel_width - self.radius
 
-                (self.rect[0], self.rect[1]) = (round(self.x), round(self.y))
 
-                collision = self.rect.collidelist(self.walls)
-                if collision != -1:
-                    collision = self.walls[collision]
-                    if self.player.vel[0] == 1:
-                        self.x = collision.x - collision.w
-                    elif self.player.vel[0] == -1:
-                        self.x = collision.x + collision.w
-                    elif self.player.vel[1] == 1:
-                        self.y = collision.y - collision.h
-                    elif self.player.vel[1] == -1:
-                        self.y = collision.y + collision.h
+                bounding_rect = pygame.Rect(round(self.x - self.radius),
+                                            round(self.y - self.radius),
+                                            self.block_size, self.block_size)
+
+
+                wall = bounding_rect.collidelist(self.walls)
+                if not wall == -1:
+                    wall = self.walls[wall]
+                    x_intersect = min(wall.x + self.block_size - bounding_rect.x,
+                                      bounding_rect.x + self.block_size - wall.x)
+                    y_intersect = min(wall.y + self.block_size - bounding_rect.y,
+                                      bounding_rect.y + self.block_size - wall.y)
+
+                    if x_intersect < y_intersect:
+                        if self.x % self.block_size > self.radius:
+                            self.x = math.floor(wall.x - self.radius)
+                        else:
+                            self.x = math.ceil(wall.x + wall.w + self.radius)
                     else:
-                        (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
-                    (self.rect[0], self.rect[1]) = (round(self.x), round(self.y))
+                        if self.y % self.block_size > self.radius:
+                            self.y = math.floor(wall.y - self.radius)
+                        else:
+                            self.y = math.ceil(wall.y + wall.h + self.radius)
 
-            (self.player.x, self.player.y) = self.to_coords(self.image.get_rect().center)
+
+            self.player.x, self.player.y = self.to_coords((self.x, self.y))
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = (realX - self.x) / FRAMES_PER_TICK
             self.y = (realY - self.y) / FRAMES_PER_TICK
-            (self.rect[0], self.rect[1]) = (round(self.x), round(self.y))
+
+        self.rect[0], self.rect[1] = (round(self.x - self.x_offset),
+                                      round(self.y - self.y_offset))
 
     def to_pixels(self, coords):
         return (
