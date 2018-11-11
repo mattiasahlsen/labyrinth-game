@@ -37,6 +37,7 @@ WIDTH = maze.width * 10
 # Initialize pygame rendering and time-management
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, WIDTH))
+clock = pygame.time.Clock()
 
 # Wait for starting positions
 msg = network.message.recv_msg(client_socket)
@@ -54,6 +55,7 @@ client_socket.setblocking(False)
 
 # Game loop
 while 1:
+    clock.tick(client_config.FRAME_RATE)
     # Read data from the server
     try:
         msg = network.message.recv_msg(client_socket)
