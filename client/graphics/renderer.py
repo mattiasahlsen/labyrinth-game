@@ -22,7 +22,7 @@ class Renderer:
         self.maze = self.game.maze
         self.width = self.maze.width
 
-        self.block_size = self.res / self.width
+        self.block_size = math.floor(self.res / self.width)
         self.pixels_per_frame =  self.block_size * BLOCKS_PER_SEC / FRAME_RATE
 
 
@@ -34,6 +34,10 @@ class Renderer:
                     self.walls.append(
                        pygame.draw.rect(self.screen, WHITE, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                     )
+
+        (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
+        pygame.draw.rect(self.screen, YELLOW,
+                        (goal_x, goal_y, self.block_size, self.block_size))
 
         self.sprites = pygame.sprite.Group()
         for player in game.players:

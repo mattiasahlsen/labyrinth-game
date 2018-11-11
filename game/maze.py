@@ -40,13 +40,13 @@ def random_maze(width=150, complexity=.5, density=.8, players=4):
     print('Generating maze walls...')
     goal = width // 2, width // 2
     two_d_array = recursive_backtracker(width, goal)
-    
+
     bit_array = two_d_to_bit(two_d_array)
-    
+
     print('Generating starting positions...')
     #start_pos = starting_positions(two_d_array, players, goal)
     start_pos = rec_starting_positions(two_d_array, players)
-    
+
     j = dict([
         ('width', len(two_d_array)),
         ('max_players', players),
@@ -95,7 +95,7 @@ def prims_algorithm(width, complexity, density):
                     Z[y_][x_] = 1
                     Z[y_ + (y - y_) // 2][x_ + (x - x_) // 2] = 1
                     x, y = x_, y_
-    
+
     return explode(Z)
 
 def explode(array, factor=2):
@@ -109,7 +109,7 @@ def explode(array, factor=2):
             if not array[old_y][old_x]:
                 new_array[i].append(0)
                 continue
-              
+
             val = 0
             if old_x == 0 or old_x == len(array) - 1:
                 val = 1
@@ -184,7 +184,7 @@ def rec_starting_positions(array, players):
         else:
             position = len(array) - 1, len(array) - 1
             vel = -1, -1
-        
+
         while array[position[1]][position[0]]:
                 position = position[0] + vel[0], position[1] + vel[1]
         positions.append(position)
@@ -219,7 +219,7 @@ def recursive_backtracker(width=200, start=(100, 100)):
 
         neighbours_ = neighbours(width, cur)
         unvisited_neighbours = unvisited_cells(two_d_array, neighbours_)
-        
+
         if unvisited_neighbours:
             n_x, n_y = unvisited_neighbours[randint(0, len(unvisited_neighbours) - 1)]
             stack.append(cur)
@@ -238,7 +238,7 @@ def recursive_backtracker(width=200, start=(100, 100)):
             cur = n_x, n_y
             two_d_array[n_y][n_x] = 0
         elif stack:
-            cur = stack.pop()   
+            cur = stack.pop()
 
         if prev == cur:
             dup_origin += 1
@@ -256,7 +256,7 @@ def recursive_backtracker(width=200, start=(100, 100)):
 
     print('Generating starting positions...')
     start_pos = [[0, 0]]
-    
+
     j = dict([
         ('width', len(two_d_array)),
         ('max_players', 1),
@@ -272,7 +272,7 @@ def exists_unvisited_cells(two_d_array):
     for row in two_d_array:
         if UNVISITED_CELL in row:
             return True
-    
+
     return False
 
 def unvisited_cells(two_d_array, cells):
@@ -292,7 +292,7 @@ def neighbours(width, loc):
         neighbours.append((loc[0], loc[1] - 2))
     if loc[1] < width - 2:
         neighbours.append((loc[0], loc[1] + 2))
-    
+
     return neighbours
 
 def finalize(two_d_array):
