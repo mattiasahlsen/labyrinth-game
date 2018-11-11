@@ -36,7 +36,11 @@ class Sprite(pygame.sprite.Sprite):
         self.image = self.images[self.image_number]
         self.update_sprite = 1 # when it's 0, update sprite
 
-        self.rect = pygame.Rect(self.player.x, self.player.y, block_size, block_size)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.x_offset = self.width / 2
+        self.y_offset = self.height / 2
+        self.rect = pygame.Rect(self.x, self.y, self.block_size, self.block_size)
 
     def update(self):
         if self.update_sprite == 0:
@@ -46,22 +50,28 @@ class Sprite(pygame.sprite.Sprite):
 
         if self.player.local:
             if self.player.illegal_move:
-                print('check 1')
                 self.player.illegal_move = False
-                (self.x, self.y) = self.to_coords((self.player.x, self.player.y))
-
-                self.rect = pygame.Rect(self.x, self.y,
-                                        self.block_size, self.block_size)
+                (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
+                (self.rect[0], self.rect[1]) = round(self.x), round(self.y)
 
             else:
                 self.x += self.pixels_per_frame * self.player.vel[0]
                 self.y += self.pixels_per_frame * self.player.vel[1]
-                self.rect = pygame.Rect(round(self.x), round(self.y),
-                                        self.block_size, self.block_size)
+
+                maze_pixel_width = self.maze.width * self.block_size
+                if self.x < 0:
+                    self.x = 0
+                elif self.x > maze_pixel_width - self.width:
+                    self.x = maze_pixel_width - self.width
+                if self.y < 0:
+                    self.y = 0
+                elif self.y > maze_pixel_width - self.height:
+                    self.y = maze_pixel_width - self.height
+
+                (self.rect[0], self.rect[1]) = (round(self.x), round(self.y))
 
                 collision = self.rect.collidelist(self.walls)
                 if collision != -1:
-                    print('check 2')
                     collision = self.walls[collision]
                     if self.player.vel[0] == 1:
                         self.x = collision.x - collision.w
@@ -72,16 +82,15 @@ class Sprite(pygame.sprite.Sprite):
                     elif self.player.vel[1] == -1:
                         self.y = collision.y + collision.h
                     else:
-                        (self.x, self.y) = self.to_coords(())
-                    self.rect = pygame.Rect(round(self.x), round(self.y), self.block_size, self.block_size)
+                        (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
+                    (self.rect[0], self.rect[1]) = (round(self.x), round(self.y))
 
-            (self.player.x, self.player.y) = self.to_coords(self.rect.center)
+            (self.player.x, self.player.y) = self.to_coords(self.image.get_rect().center)
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = (realX - self.x) / FRAMES_PER_TICK
             self.y = (realY - self.y) / FRAMES_PER_TICK
-            self.rect = pygame.Rect(round(self.x), round(self.y),
-                                    self.block_size, self.block_size)
+            (self.rect[0], self.rect[1]) = (round(self.x), round(self.y))
 
     def to_pixels(self, coords):
         return (
