@@ -2,6 +2,12 @@ import json
 from random import randint
 from os import path
 
+import time
+import pygame
+import sys
+
+UNVISITED_CELL = 5
+
 class Maze:
     def __init__(self, json_data=None):
         if not json_data:
@@ -32,17 +38,14 @@ class Maze:
 
 def random_maze(width=150, complexity=.5, density=.8, players=4):
     print('Generating maze walls...')
-    two_d_array = sub_maze(width, complexity, density)
-
-    # Convert 2D array to 1D array
-    bit_array = []
-    for row in two_d_array:
-        for bit in row:
-            bit_array.append(bit)
-
-    goal = goal_pos(bit_array, len(two_d_array))
+    goal = width // 2, width // 2
+    two_d_array = recursive_backtracker(width, goal)
+    
+    bit_array = two_d_to_bit(two_d_array)
+    
     print('Generating starting positions...')
-    start_pos = starting_positions(two_d_array, players, goal)
+    #start_pos = starting_positions(two_d_array, players, goal)
+    start_pos = rec_starting_positions(two_d_array, players)
     
     j = dict([
         ('width', len(two_d_array)),
@@ -54,8 +57,15 @@ def random_maze(width=150, complexity=.5, density=.8, players=4):
     print('Maze done!')
     return Maze(json.dumps(j))
 
-# sub_maze() returns a 2-d array of bits
-def sub_maze(width, complexity, density):
+# Convert 2D array to 1D array
+def two_d_to_bit(two_d_array):
+    bit_array = []
+    for row in two_d_array:
+        for bit in row:
+            bit_array.append(bit)
+    return bit_array
+
+def prims_algorithm(width, complexity, density):
     # Only odd shapes
     width = width // 2
     shape = ((width // 2) * 2 + 1, (width // 2) * 2 + 1)
@@ -123,7 +133,7 @@ def explode(array, factor=2):
                 val = 0
 
             new_array[i].append(val)
-        
+
     return new_array
 
 def goal_pos(array, width):
@@ -133,6 +143,8 @@ def goal_pos(array, width):
         goal = (goal[0], goal[1] + 1)
 
     return goal
+
+
 
 def starting_positions(array, players, goal):
     positions = []
@@ -155,3 +167,136 @@ def starting_positions(array, players, goal):
                 max_dist_pos = position
         positions.append(max_dist_pos)
     return positions
+
+def rec_starting_positions(array, players):
+    positions = []
+
+    for i in range(players):
+        if i == 0:
+            position = 0, 0
+            vel = 1, 1
+        elif i == 1:
+            position = len(array) - 1, 0
+            vel = -1, 1
+        elif i == 2:
+            position = 0, len(array) - 1
+            vel = 1, -1
+        else:
+            position = len(array) - 1, len(array) - 1
+            vel = -1, -1
+        
+        while array[position[1]][position[0]]:
+                position = position[0] + vel[0], position[1] + vel[1]
+        positions.append(position)
+    print(str(positions))
+    return positions
+
+def recursive_backtracker(width=200, start=(100, 100)):
+    print('Generating maze walls...')
+    width = width // 2
+
+    two_d_array = []
+    for i in range(width):
+        two_d_array.append([])
+        for j in range(width):
+            if i % 2 == 0:
+                temp = 1
+            else:
+                temp = 0
+            if j % 2 == temp:
+                two_d_array[i].append(1)
+            else:
+                two_d_array[i].append(UNVISITED_CELL)
+
+    cur = start[0] // 2, start[1] // 2
+    prev = 0, 0
+    stack = []
+    two_d_array[cur[0]][cur[1]] = 0
+    dup_origin = 0
+
+    while dup_origin < 3:
+        prev = cur
+
+        neighbours_ = neighbours(width, cur)
+        unvisited_neighbours = unvisited_cells(two_d_array, neighbours_)
+        
+        if unvisited_neighbours:
+            n_x, n_y = unvisited_neighbours[randint(0, len(unvisited_neighbours) - 1)]
+            stack.append(cur)
+            w_x, w_y = n_x, n_y
+            if n_x > cur[0]:
+                w_x -= 1
+            elif n_x < cur[0]:
+                w_x += 1
+            elif n_y > cur[1]:
+                w_y -= 1
+            elif n_y < cur[1]:
+                w_y += 1
+
+            two_d_array[w_y][w_x] = 0
+            stack.append((w_x, w_y))
+            cur = n_x, n_y
+            two_d_array[n_y][n_x] = 0
+        elif stack:
+            cur = stack.pop()   
+
+        if prev == cur:
+            dup_origin += 1
+
+    finalize(two_d_array)
+    two_d_array = explode(two_d_array)
+
+    return two_d_array
+    """
+    # Convert 2D array to 1D array
+    bit_array = []
+    for row in two_d_array:
+        for bit in row:
+            bit_array.append(bit)
+
+    print('Generating starting positions...')
+    start_pos = [[0, 0]]
+    
+    j = dict([
+        ('width', len(two_d_array)),
+        ('max_players', 1),
+        ('starting_locations', start_pos),
+        ('goal', start),
+        ('bit_array', bit_array)
+    ])
+
+    print('Maze done!')
+    return Maze(json.dumps(j))"""
+
+def exists_unvisited_cells(two_d_array):
+    for row in two_d_array:
+        if UNVISITED_CELL in row:
+            return True
+    
+    return False
+
+def unvisited_cells(two_d_array, cells):
+    res = []
+    for cell in cells:
+        if two_d_array[cell[1]][cell[0]] == UNVISITED_CELL:
+            res.append(cell)
+    return res
+
+def neighbours(width, loc):
+    neighbours = []
+    if loc[0] > 1:
+        neighbours.append((loc[0] - 2, loc[1]))
+    if loc[0] < width - 2:
+        neighbours.append((loc[0] + 2, loc[1]))
+    if loc[1] > 1:
+        neighbours.append((loc[0], loc[1] - 2))
+    if loc[1] < width - 2:
+        neighbours.append((loc[0], loc[1] + 2))
+    
+    return neighbours
+
+def finalize(two_d_array):
+    for i in range(len(two_d_array)):
+        for j in range(len(two_d_array)):
+            if two_d_array[i][j] == UNVISITED_CELL:
+                two_d_array[i][j] = 1
