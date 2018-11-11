@@ -25,18 +25,17 @@ SERVER_IP = input('IP of server: ')
 # Connect to server
 client_socket = connect(SERVER_IP, config.SERVER_PORT)
 
-# global variables
-WIDTH = client_config.WINDOW_WIDTH
 
+# Wait for maze
+msg = network.message.recv_msg(client_socket)
+maze = maze.Maze(msg.decode())
+
+WIDTH = maze.width * 10
 
 # Initialize pygame rendering and time-management
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, WIDTH))
 clock = pygame.time.Clock()
-
-# Wait for maze
-msg = network.message.recv_msg(client_socket)
-maze = maze.Maze(msg.decode())
 
 # Wait for starting positions
 msg = network.message.recv_msg(client_socket)
