@@ -13,9 +13,6 @@ import server_config
 import config
 
 PLAYERS = int(input('Number of players: '))            # amount of players
-maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
-game = game_state.GameState(PLAYERS, maze)
-
 
 def wait_players():
     port = config.SERVER_PORT
@@ -41,6 +38,17 @@ def wait_players():
         print("Got connection from: " + str(clients[-1][1]))
     server_socket.close()
     return clients
+
+def wait_nicknames():
+    names = dict()
+
+    while len(names) < PLAYERS:
+        for i in range(len(clients)):
+            msg = network.message.recv_msg(clients[i][0])
+            msg = msg.decode()
+            if msg:
+                names[i] = msg
+    return names
 
 def game_loop():
     pygame.init()
@@ -97,8 +105,15 @@ def game_loop():
 
 # Wait for all players to connect
 clients = wait_players()
-print(str(PLAYERS) + " players connected, sending maze data...")
+print(str(PLAYERS) + " players connected, waiting for nicknames...")
 
+names = wait_nicknames()
+print('Received player names: ' + str(names))
+
+maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
+game = game_state.GameState(names, maze)
+
+print("Sending maze data...")
 # Send the maze to all clients
 for client in clients:
     network.message.send_msg(client[0], str.encode(maze.as_json()))
@@ -106,7 +121,7 @@ for client in clients:
 print("Assigning player numbers...")
 i = 0
 for client in clients:
-    msg = dict([('player_number', i), ('player_amount', PLAYERS)])
+    msg = dict([('player_number', i), ('players', names)])
     network.message.send_msg(client[0], str.encode(json.dumps(msg)))
     i += 1
 

@@ -3,12 +3,12 @@ import pygame
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, player_number, location):
+    def __init__(self, player_number, location, name):
         self.id = player_number
         self.x = location[0]
         self.y = location[1]
         self.local = False
-
+        self.name = name
 
     def move(self):
         self.x += self.vel[0]
@@ -28,8 +28,8 @@ class Player(pygame.sprite.Sprite):
         return dict([('id', self.id), ('x', self.x), ('y', self.y)])
 
 class LocalPlayer(Player):
-    def __init__(self, number, location):
-        Player.__init__(self, number, location)
+    def __init__(self, number, location, name):
+        Player.__init__(self, number, location, name)
         self.vel = (0, 0)
         self.local = True
         self.illegal_move = False
