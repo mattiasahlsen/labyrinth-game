@@ -79,7 +79,6 @@ class Renderer:
         else:
             winner_text = self.game.players[self.game.winners[0]].name + " wins!"
 
-        pygame.font.init()
         font = pygame.font.SysFont(None, int(self.block_size * 8))
         textsurface = font.render(winner_text, False, ORANGE)
         text_rect = textsurface.get_rect()
