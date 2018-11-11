@@ -3,12 +3,12 @@ import math
 from . import player
 
 class GameState:
-    def __init__(self, players, maze):
+    def __init__(self, id_name_pairs, maze):
         self.maze = maze
-        self.player_amount = len(players)
+        self.player_amount = len(id_name_pairs)
         self.players = []
         self.winners = []
-        for id_, name in players.items():
+        for id_, name in id_name_pairs:
             self.players.append(player.Player(id_, maze.starting_locations[id_], name))
 
     def set_vel(self, player_number, direction):

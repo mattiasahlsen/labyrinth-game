@@ -9,13 +9,13 @@ from client_config import FRAME_RATE, BLOCKS_PER_SEC
 # globals
 FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
 
+
 class Renderer:
     def __init__(self, screen, res, game):
         self.screen = screen
         screen.fill(BLACK)
         self.res = res
 
-        self.width = None
         self.pixel_positions = []
 
         self.game = game
@@ -86,7 +86,7 @@ class Renderer:
         font = pygame.font.SysFont(None, int(self.block_size * 8))
         textsurface = font.render(winner_text, False, ORANGE)
         text_rect = textsurface.get_rect()
-        
+
         top_left = self.res // 2 - text_rect.w // 2, self.res // 2 - text_rect.h // 2
 
         self.screen.blit(textsurface, top_left)

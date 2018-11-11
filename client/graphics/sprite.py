@@ -4,8 +4,10 @@ import math
 import pygame
 
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
-from config import TICK_RATE # updates from server per second
+# max updates to server per second (also move speed in coords)
+from config import TICK_RATE
 
+clock = pygame.time.Clock()
 
 # globals
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -98,51 +100,48 @@ class Sprite(pygame.sprite.Sprite):
                             return pygame.Rect(x, y,
                                                self.block_size,
                                                self.block_size)
-                        #print('x intersect: ' + str(x_intersect))
-                        #print('y_intersect: ' + str(y_intersect))
 
-                        if (abs(x_intersect) < 1.5 * self.pixels_per_frame and
-                            abs(y_intersect) < 1.5 * self.pixels_per_frame
+                        next_bounding_rect_x = make_rect(
+                            bounding_rect.x + x_intersect,
+                            bounding_rect.y)
+                        next_bounding_rect_y = make_rect(
+                            bounding_rect.x,
+                            bounding_rect.y + y_intersect)
+                        next_bounding_rect_both = make_rect(
+                            bounding_rect.x + x_intersect,
+                            bounding_rect.y + y_intersect)
+                        if (x_intersect < y_intersect and
+                            abs(x_intersect) < 1.5 * self.pixels_per_frame
+                            and next_bounding_rect_x.collidelist(self.walls) == -1
                         ):
-                            next_bounding_rect = make_rect(
-                                bounding_rect.x + x_intersect,
-                                bounding_rect.y + y_intersect)
-                            if next_bounding_rect.collidelist(self.walls) == -1:
-                                self.x = next_bounding_rect.x + self.radius
-                                self.y = next_bounding_rect.y + self.radius
+                            self.x = next_bounding_rect_x.x + self.radius
+
+                        elif (y_intersect < x_intersect
+                            and abs(y_intersect) < 1.5 * self.pixels_per_frame
+                            and next_bounding_rect_y.collidelist(self.walls) == -1
+                        ):
+                            self.y = next_bounding_rect_y.y + self.radius
                         else:
-                            if (abs(x_intersect) < 1.5 * self.pixels_per_frame or
-                                x_intersect < y_intersect
-                            ):
-                                next_bounding_rect = make_rect(
-                                    bounding_rect.x + x_intersect,
-                                    bounding_rect.y)
-                                if next_bounding_rect.collidelist(self.walls) == -1:
-                                    self.x = next_bounding_rect.x + self.radius
-
-                            if (abs(y_intersect) < 1.5 * self.pixels_per_frame or
-                                y_intersect < x_intersect):
-                                next_bounding_rect = make_rect(
-                                    bounding_rect.x,
-                                    bounding_rect.y + y_intersect)
-                                if next_bounding_rect.collidelist(self.walls) == -1:
-                                    self.y = next_bounding_rect.y + self.radius
-
+                            self.x = next_bounding_rect_both.x + self.radius
+                            self.y = next_bounding_rect_both.y + self.radius
 
 
             new_pos = self.to_coords((self.x, self.y))
             if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
                 # can't move in x and y at the same time
-                if self.prio == 'x':
-                    self.player.x = new_pos[0]
-                    self.prio = 'y'
-                else:
-                    self.player.y = new_pos[1]
-                    self.prio = 'x'
-            else:
-                self.player.x, self.player.y = new_pos
-            #print(self.player.x)
-            #print(self.player.y)
+                if clock.get_time() > 1000 / TICK_RATE:
+                    if self.prio == 'x':
+                        self.player.x = new_pos[0]
+                        self.prio = 'y'
+                    else:
+                        self.player.y = new_pos[1]
+                        self.prio = 'x'
+
+                    clock.tick()
+            elif new_pos != (self.player.x, self.player.y):
+                if clock.get_time() > 1000 / TICK_RATE:
+                    self.player.x, self.player.y = new_pos
+                    clock.tick()
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = (realX - self.x) / FRAMES_PER_TICK

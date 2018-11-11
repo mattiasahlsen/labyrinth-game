@@ -37,33 +37,23 @@ WIDTH = maze.width * 10
 # Initialize pygame rendering and time-management
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, WIDTH))
-clock = pygame.time.Clock()
 
 # Wait for starting positions
 msg = network.message.recv_msg(client_socket)
 data = json.loads(msg.decode())
 my_number = data['player_number']
-players_raw = data['players']
-players = dict()
-
-for id_, name in players_raw.items():
-    players[int(id_)] = name
+id_name_pairs = data['players']
 
 # Game state object
-game = game_state.LocalGameState(players, maze, my_number)
+game = game_state.LocalGameState(id_name_pairs, maze, my_number)
 renderer = renderer.Renderer(screen, WIDTH, game)
 
 velocity = (0, 0)
 game_pos = game.players[my_number].current_pos()
-tick_timeout = 0
 client_socket.setblocking(False)
 
 # Game loop
 while 1:
-    # Tick the clock
-    clock.tick(client_config.FRAME_RATE)
-    tick_timeout += clock.get_time()
-
     # Read data from the server
     try:
         msg = network.message.recv_msg(client_socket)
@@ -115,10 +105,6 @@ while 1:
     if game_pos != game.players[my_number].current_pos():
         game_pos = game.players[my_number].current_pos()
         network.message.send_msg(client_socket, str.encode(game.to_json()))
-
-    # Send updates to server every TICK_INTERVAL milliseconds
-    if tick_timeout > 1000 / client_config.BLOCKS_PER_SEC:
-        tick_timeout = 0
 
     # Handle exit
     for event in pygame.event.get():
