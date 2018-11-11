@@ -32,7 +32,7 @@ class Renderer:
             for x in range(self.width):
                 if self.maze.maze[y * self.width + x]:
                     self.walls.append(
-                       pygame.draw.rect(self.screen, WHITE, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
+                       pygame.draw.rect(self.screen, GREY, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
                     )
 
         (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
@@ -65,22 +65,31 @@ class Renderer:
             for i in range(0, int(width / self.block_size)):
                 for j in range(0, int(height / self.block_size)):
                     if self.maze.maze[int((y // self.block_size + j) * self.width + x // self.block_size + i)]:
-                        pygame.draw.rect(self.screen, WHITE, (int(x) + i * self.block_size, int(y) + j * self.block_size, self.block_size, self.block_size), 0)
+                        pygame.draw.rect(self.screen, GREY, (int(x) + i * self.block_size, int(y) + j * self.block_size, self.block_size, self.block_size), 0)
 
 
         self.sprites.clear(self.screen, background)
         self.sprites.draw(self.screen)
 
     def finish(self):
-        winner_text = "Winners: " + str(self.game.winners)
-        self.screen.fill(BLACK)
-        pygame.font.init()
-        myfont = pygame.font.SysFont('Comic Sans MS', 30)
-        textsurface = myfont.render(winner_text, False, WHITE)
+        winner_amount = len(self.game.winners)
+        if winner_amount > 1:
+            winner_text = "Draw! The winners are: "
 
-        center = (self.res / 2, self.res / 2)
+            for i in range(winner_amount):
+                winner_text += self.game.players[self.game.winners[i]].name
+                if not i == winner_amount - 1:
+                    winner_text += ', '
+        else:
+            winner_text = self.game.players[self.game.winners[0]].name + " wins!"
 
-        self.screen.blit(textsurface, center)
+        font = pygame.font.SysFont(None, int(self.block_size * 8))
+        textsurface = font.render(winner_text, False, ORANGE)
+        text_rect = textsurface.get_rect()
+        
+        top_left = self.res // 2 - text_rect.w // 2, self.res // 2 - text_rect.h // 2
+
+        self.screen.blit(textsurface, top_left)
 
     def to_pixels(self, coords):
         return (

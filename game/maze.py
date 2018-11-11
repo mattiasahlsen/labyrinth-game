@@ -2,10 +2,6 @@ import json
 from random import randint
 from os import path
 
-import time
-import pygame
-import sys
-
 UNVISITED_CELL = 5
 
 class Maze:
@@ -38,13 +34,12 @@ class Maze:
 
 def random_maze(width=150, complexity=.5, density=.8, players=4):
     print('Generating maze walls...')
-    goal = width // 2, width // 2
+    goal = width // 2 - 1, width // 2 - 1
     two_d_array = recursive_backtracker(width, goal)
 
     bit_array = two_d_to_bit(two_d_array)
 
     print('Generating starting positions...')
-    #start_pos = starting_positions(two_d_array, players, goal)
     start_pos = rec_starting_positions(two_d_array, players)
 
     j = dict([
@@ -54,7 +49,7 @@ def random_maze(width=150, complexity=.5, density=.8, players=4):
         ('goal', goal),
         ('bit_array', bit_array)
     ])
-    print('Maze done!')
+
     return Maze(json.dumps(j))
 
 # Convert 2D array to 1D array
@@ -98,7 +93,8 @@ def prims_algorithm(width, complexity, density):
 
     return explode(Z)
 
-def explode(array, factor=2):
+def explode(array):
+    factor = 2
     new_array = []
     new_length = len(array) * factor
     for i in range(new_length):
@@ -106,26 +102,25 @@ def explode(array, factor=2):
         for j in range(new_length):
             old_x = j // factor
             old_y = i // factor
-            if not array[old_y][old_x]:
+            is_edge = old_x == 0 or old_y == 0
+            if not array[old_y][old_x] and not is_edge:
                 new_array[i].append(0)
                 continue
 
             val = 0
-            if old_x == 0 or old_x == len(array) - 1:
-                val = 1
-            elif old_y == 0 or old_y == len(array) - 1:
-                val = 1
-            elif j % factor == 0 and (i % factor == 0 or i % factor == 2):
-                val = 0
-            elif j % factor == 2 and (i % factor == 0 or i % factor == 2):
+            if is_edge:
+                if array[old_y][old_x]:
+                    if old_x == 0:
+                        val = i % factor
+                    else:
+                        val = j % factor
+                else:
+                    val = 0
+            elif j % factor == 0 and i % factor == 0:
                 val = 0
             elif j % factor == 1 and i % factor == 1:
                 val = 1
             elif j % factor == 1 and i % factor == 0 and array[old_y - 1][old_x]:
-                val = 1
-            elif j % factor == 2 and i % factor == 1 and array[old_y][old_x + 1]:
-                val = 1
-            elif j % factor == 1 and i % factor == 2 and array[old_y + 1][old_x]:
                 val = 1
             elif j % factor == 0 and i % factor == 1 and array[old_y][old_x - 1]:
                 val = 1
@@ -136,7 +131,7 @@ def explode(array, factor=2):
 
     return new_array
 
-def goal_pos(array, width):
+def random_walk_goal_pos(array, width):
     goal = (width // 2, width // 2)
 
     while array[goal[1] * width + goal[0]]:
@@ -144,9 +139,7 @@ def goal_pos(array, width):
 
     return goal
 
-
-
-def starting_positions(array, players, goal):
+def random_walk_starting_positions(array, players, goal):
     positions = []
 
     position = goal
@@ -186,13 +179,12 @@ def rec_starting_positions(array, players):
             vel = -1, -1
 
         while array[position[1]][position[0]]:
-                position = position[0] + vel[0], position[1] + vel[1]
+            position = position[0] + vel[0], position[1] + vel[1]
         positions.append(position)
-    print(str(positions))
+
     return positions
 
 def recursive_backtracker(width=200, start=(100, 100)):
-    print('Generating maze walls...')
     width = width // 2
 
     two_d_array = []
@@ -247,33 +239,6 @@ def recursive_backtracker(width=200, start=(100, 100)):
     two_d_array = explode(two_d_array)
 
     return two_d_array
-    """
-    # Convert 2D array to 1D array
-    bit_array = []
-    for row in two_d_array:
-        for bit in row:
-            bit_array.append(bit)
-
-    print('Generating starting positions...')
-    start_pos = [[0, 0]]
-
-    j = dict([
-        ('width', len(two_d_array)),
-        ('max_players', 1),
-        ('starting_locations', start_pos),
-        ('goal', start),
-        ('bit_array', bit_array)
-    ])
-
-    print('Maze done!')
-    return Maze(json.dumps(j))"""
-
-def exists_unvisited_cells(two_d_array):
-    for row in two_d_array:
-        if UNVISITED_CELL in row:
-            return True
-
-    return False
 
 def unvisited_cells(two_d_array, cells):
     res = []

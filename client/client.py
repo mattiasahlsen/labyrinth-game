@@ -20,11 +20,13 @@ def connect(ip, port):
     client_socket.connect((ip, port))
     return client_socket
 
+PLAYER_NAME = input('Nickname: ')
 # Network constants
 SERVER_IP = input('IP of server: ')
 # Connect to server
 client_socket = connect(SERVER_IP, config.SERVER_PORT)
 
+network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 
 # Wait for maze
 msg = network.message.recv_msg(client_socket)
@@ -41,16 +43,20 @@ clock = pygame.time.Clock()
 msg = network.message.recv_msg(client_socket)
 data = json.loads(msg.decode())
 my_number = data['player_number']
+players_raw = data['players']
+players = dict()
+
+for id_, name in players_raw.items():
+    players[int(id_)] = name
 
 # Game state object
-game = game_state.LocalGameState(data['player_amount'], maze, my_number)
+game = game_state.LocalGameState(players, maze, my_number)
 renderer = renderer.Renderer(screen, WIDTH, game)
 
 velocity = (0, 0)
 game_pos = game.players[my_number].current_pos()
 tick_timeout = 0
 client_socket.setblocking(False)
-
 
 # Game loop
 while 1:

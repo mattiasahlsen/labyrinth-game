@@ -3,13 +3,13 @@ import math
 from . import player
 
 class GameState:
-    def __init__(self, player_amount, maze):
+    def __init__(self, players, maze):
         self.maze = maze
-        self.player_amount = player_amount
+        self.player_amount = len(players)
         self.players = []
         self.winners = []
-        for i in range(player_amount):
-            self.players.append(player.Player(i, maze.starting_locations[i]))
+        for id_, name in players.items():
+            self.players.append(player.Player(id_, maze.starting_locations[id_], name))
 
     def set_vel(self, player_number, direction):
         self.players[player_number].vel = direction
@@ -50,10 +50,10 @@ class GameState:
         return False
 
 class LocalGameState(GameState):
-    def __init__(self, player_amount, maze, local_id):
-        GameState.__init__(self, player_amount, maze)
+    def __init__(self, players, maze, local_id):
+        GameState.__init__(self, players, maze)
         self.local_player = local_id
-        self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id])
+        self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id], players[local_id])
 
     # client_to_json() packages the local player into json
     def to_json(self):
