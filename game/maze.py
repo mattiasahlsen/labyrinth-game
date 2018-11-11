@@ -49,7 +49,7 @@ def random_maze(width=150, complexity=.5, density=.8, players=4):
         ('goal', goal),
         ('bit_array', bit_array)
     ])
-    print('Maze done!')
+    
     return Maze(json.dumps(j))
 
 # Convert 2D array to 1D array
