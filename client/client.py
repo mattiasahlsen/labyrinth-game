@@ -3,7 +3,7 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import tkinter
+import math
 import socket
 import json
 import pygame
@@ -77,16 +77,32 @@ while 1:
     # Keyboard input
     pygame.event.pump()
     keys = pygame.key.get_pressed()
+
+    diag = False
+    if ( (keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]) and
+         (keys[pygame.K_UP] or keys[pygame.K_DOWN]) ):
+        diag = True
+    velocity = (0, 0)
     if keys[pygame.K_RIGHT]:
-        velocity = (1, 0)
+        if diag:
+            velocity = (math.sqrt(0.5), velocity[1])
+        else:
+            velocity = (1, 0)
     elif keys[pygame.K_LEFT]:
-        velocity = (-1, 0)
-    elif keys[pygame.K_UP]:
-        velocity = (0, -1)
+        if diag:
+            velocity = (-math.sqrt(0.5), velocity[1])
+        else:
+            velocity = (-1, 0)
+    if keys[pygame.K_UP]:
+        if diag:
+            velocity = (velocity[0], -math.sqrt(0.5))
+        else:
+            velocity = (0, -1)
     elif keys[pygame.K_DOWN]:
-        velocity = (0, 1)
-    else:
-        velocity = (0, 0)
+        if diag:
+            velocity = (velocity[0], math.sqrt(0.5))
+        else:
+            velocity =  (0, 1)
 
     game.set_vel(my_number, velocity)
 

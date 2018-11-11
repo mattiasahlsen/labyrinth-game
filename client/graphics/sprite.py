@@ -44,11 +44,14 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = pygame.Rect(round(self.x - self.x_offset), round(self.y - self.y_offset),
                                 self.img_width, self.img_height)
 
+        self.prio = 'x'
+
     def update(self):
         if self.update_sprite == 0:
             self.image_number = (self.image_number + 1) % 4
             self.image = self.images[self.image_number]
         self.update_sprite = (self.update_sprite + 1) % SPRITE_UPDATE_INTERVAL
+
 
         if self.player.local:
             if self.player.illegal_move:
@@ -76,27 +79,70 @@ class Sprite(pygame.sprite.Sprite):
                                             self.block_size, self.block_size)
 
 
-                wall = bounding_rect.collidelist(self.walls)
-                if not wall == -1:
-                    wall = self.walls[wall]
-                    x_intersect = min(wall.x + self.block_size - bounding_rect.x,
-                                      bounding_rect.x + self.block_size - wall.x)
-                    y_intersect = min(wall.y + self.block_size - bounding_rect.y,
-                                      bounding_rect.y + self.block_size - wall.y)
+                walls = bounding_rect.collidelistall(self.walls)
+                if walls:
+                    for wall_index in walls:
+                        wall = self.walls[wall_index]
 
-                    if x_intersect < y_intersect:
-                        if self.x % self.block_size > self.radius:
-                            self.x = math.floor(wall.x - self.radius)
+                        x_intsec_1 = wall.x + self.block_size - bounding_rect.x
+                        x_intsec_2 = wall.x - (bounding_rect.x + self.block_size)
+                        y_intsec_1 = wall.y + self.block_size - bounding_rect.y
+                        y_intsec_2 = wall.y - (bounding_rect.y + self.block_size)
+
+                        x_intersect = (x_intsec_1 if abs(x_intsec_1) < abs(x_intsec_2)
+                            else x_intsec_2)
+                        y_intersect = (y_intsec_1 if abs(y_intsec_1) < abs(y_intsec_2)
+                            else y_intsec_2)
+
+                        def make_rect(x, y):
+                            return pygame.Rect(x, y,
+                                               self.block_size,
+                                               self.block_size)
+                        #print('x intersect: ' + str(x_intersect))
+                        #print('y_intersect: ' + str(y_intersect))
+
+                        if (abs(x_intersect) < 1.5 * self.pixels_per_frame and
+                            abs(y_intersect) < 1.5 * self.pixels_per_frame
+                        ):
+                            next_bounding_rect = make_rect(
+                                bounding_rect.x + x_intersect,
+                                bounding_rect.y + y_intersect)
+                            if next_bounding_rect.collidelist(self.walls) == -1:
+                                self.x = next_bounding_rect.x + self.radius
+                                self.y = next_bounding_rect.y + self.radius
                         else:
-                            self.x = math.ceil(wall.x + wall.w + self.radius)
-                    else:
-                        if self.y % self.block_size > self.radius:
-                            self.y = math.floor(wall.y - self.radius)
-                        else:
-                            self.y = math.ceil(wall.y + wall.h + self.radius)
+                            if (abs(x_intersect) < 1.5 * self.pixels_per_frame or
+                                x_intersect < y_intersect
+                            ):
+                                next_bounding_rect = make_rect(
+                                    bounding_rect.x + x_intersect,
+                                    bounding_rect.y)
+                                if next_bounding_rect.collidelist(self.walls) == -1:
+                                    self.x = next_bounding_rect.x + self.radius
+
+                            if (abs(y_intersect) < 1.5 * self.pixels_per_frame or
+                                y_intersect < x_intersect):
+                                next_bounding_rect = make_rect(
+                                    bounding_rect.x,
+                                    bounding_rect.y + y_intersect)
+                                if next_bounding_rect.collidelist(self.walls) == -1:
+                                    self.y = next_bounding_rect.y + self.radius
 
 
-            self.player.x, self.player.y = self.to_coords((self.x, self.y))
+
+            new_pos = self.to_coords((self.x, self.y))
+            if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
+                # can't move in x and y at the same time
+                if self.prio == 'x':
+                    self.player.x = new_pos[0]
+                    self.prio = 'y'
+                else:
+                    self.player.y = new_pos[1]
+                    self.prio = 'x'
+            else:
+                self.player.x, self.player.y = new_pos
+            #print(self.player.x)
+            #print(self.player.y)
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = (realX - self.x) / FRAMES_PER_TICK

@@ -9,7 +9,6 @@ class Player(pygame.sprite.Sprite):
         self.y = location[1]
         self.local = False
 
-
     def move(self):
         self.x += self.vel[0]
         self.y += self.vel[1]
