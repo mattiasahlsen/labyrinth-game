@@ -4,6 +4,7 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 import socket
+import errno
 import json
 import pygame
 from game import maze, game_state
@@ -71,29 +72,34 @@ def game_loop():
         time_since_transmission += clock.get_time()
         # Read all sockets
         for i in range(PLAYERS):
-            try:
-                buf = network.message.recv_msg(clients[i][0])
-                buf = buf.decode()
-                if buf:
-                    ma[i] = 0.75 * ma[i] + 0.25 * time_since_update[i]
-                    if ma[i] > server_config.MOVEMENT_TIMEOUT:
-                        illegal_movements[i] = not game.from_json(buf)
-                    else:
-                        illegal_movements[i] = True
-                    time_since_update[i] = 0
-            except BlockingIOError:
-                pass
+            if clients[i]:
+                try:
+                    buf = network.message.recv_msg(clients[i][0])
+                    if buf:
+                        buf = buf.decode()
+                        if buf:
+                            ma[i] = 0.75 * ma[i] + 0.25 * time_since_update[i]
+                            if ma[i] > server_config.MOVEMENT_TIMEOUT:
+                                illegal_movements[i] = not game.from_json(buf)
+                            else:
+                                illegal_movements[i] = True
+                            time_since_update[i] = 0
+                except (BlockingIOError, ConnectionResetError) as e:
+                    if e.errno == errno.ECONNRESET:     # client disconnected
+                        clients[i] = None
+                
 
         if time_since_transmission > server_config.MOVEMENT_TIMEOUT:
             time_since_transmission = 0
             for i in range(PLAYERS):
-                if illegal_movements[i]:
-                    encoded_message = str.encode(game.to_json())
-                else:
-                    encoded_message = str.encode(game.to_json(i))
+                if clients[i]:
+                    if illegal_movements[i]:
+                        encoded_message = str.encode(game.to_json())
+                    else:
+                        encoded_message = str.encode(game.to_json(i))
 
-                network.message.send_msg(clients[i][0], encoded_message)
-                illegal_movements[i] = False
+                    network.message.send_msg(clients[i][0], encoded_message)
+                    illegal_movements[i] = False
 
             if game.winners:
                 break
