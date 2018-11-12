@@ -111,9 +111,8 @@ class Sprite(pygame.sprite.Sprite):
             elif new_pos != (self.player.x, self.player.y):
                 self.player.x, self.player.y = new_pos
 
-                
+
         else:
-            self.x, self.y = self.to_pixels((self.player.x, self.player.y))
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = self.x + (realX - self.x) / FRAMES_PER_TICK
             self.y = self.y + (realY - self.y) / FRAMES_PER_TICK
