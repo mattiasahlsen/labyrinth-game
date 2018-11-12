@@ -2,7 +2,8 @@ import math
 import pygame
 from os import path
 from graphics.colors import *
-from .sprite import Sprite
+from .player_sprite import PlayerSprite
+from .coin_sprite import CoinSprite
 from .wall import Wall
 
 from config import GAME_WIDTH
@@ -36,20 +37,17 @@ class Renderer:
 
         # goal sprite
         (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
-        self.goal = pygame.sprite.Sprite()
-        self.goal.image = pygame.image.load(path.join(DIR, 'sprites/sprites/coin_anim_f0.png'))
-        self.goal.image = pygame.transform.scale(self.goal.image, (self.block_size, self.block_size))
-
-        self.goal.rect = pygame.Rect(goal_x, goal_y, self.block_size, self.block_size)
-        self.sprites.add(self.goal)
+        goal = CoinSprite((goal_x, goal_y, self.block_size, self.block_size))
+        self.sprites.add(goal)
 
         self.player_sprites = pygame.sprite.Group()
         for player in game.players:
-            self.player_sprites.add(Sprite(game, player, self.block_size, walls_rect))
+            self.player_sprites.add(PlayerSprite(game, player, self.block_size, walls_rect, 'elf_f'))
 
     def render_game(self):
         self.screen.fill(BLACK)
         self.player_sprites.update()
+        self.sprites.update()
 
         self.player_sprites.draw(self.screen)
         self.sprites.draw(self.screen)
