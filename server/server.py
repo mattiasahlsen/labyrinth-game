@@ -16,6 +16,13 @@ import config
 PLAYERS = int(input('Number of players: '))            # amount of players
 WEIGHT = server_config.WEIGHT
 
+# Client dict keys
+NAME = 'name'
+SOCKET = 'socket'
+EMA = 'ema'
+TIME_SINCE_UPDATE = 'time_since_update'
+ILLEGAL_MOVE = 'illegal_move'
+
 def wait_players():
     port = config.SERVER_PORT
 
@@ -37,9 +44,9 @@ def wait_players():
     while len(clients) < PLAYERS:
         client = {}
         clients.append(client)
-        client['socket'] = server_socket.accept()
-        client['socket'][0].setblocking(False)
-        print("Got connection from: " + str(client['socket'][1]))
+        client[SOCKET] = server_socket.accept()
+        client[SOCKET][0].setblocking(False)
+        print("Got connection from: " + str(client[SOCKET][1]))
     server_socket.close()
     return clients
 
@@ -47,11 +54,11 @@ def wait_nicknames(clients):
     count = 0
     while count < len(clients):
         for client in clients:
-            if not 'name' in client:
-                msg = network.message.recv_msg(client['socket'][0])
+            if not NAME in client:
+                msg = network.message.recv_msg(client[SOCKET][0])
                 msg = msg.decode()
             if msg:
-                client['name'] = msg
+                client[NAME] = msg
                 count += 1
 
 def game_loop(clients):
@@ -59,9 +66,9 @@ def game_loop(clients):
     clock = pygame.time.Clock()
 
     for client in clients:
-        client['time_since_update'] = 0
-        client['illegal_move'] = False
-        client['ema'] = server_config.MOVEMENT_TIMEOUT + 20
+        client[TIME_SINCE_UPDATE] = 0
+        client[ILLEGAL_MOVE] = False
+        client[EMA] = server_config.MOVEMENT_TIMEOUT + 20
 
     time_since_transmission = 0
 
@@ -71,22 +78,22 @@ def game_loop(clients):
 
         # Read all sockets
         for client in clients:
-            client['time_since_update'] += clock.get_time()
-            if client['socket']:
+            client[TIME_SINCE_UPDATE] += clock.get_time()
+            if client[SOCKET]:
                 try:
-                    buf = network.message.recv_msg(client['socket'][0])
+                    buf = network.message.recv_msg(client[SOCKET][0])
                     if buf:
                         buf = buf.decode()
                         if buf:
-                            client['ema'] = WEIGHT * client['ema'] + (1 - WEIGHT) * client['time_since_update']
-                            if client['ema'] > server_config.MOVEMENT_TIMEOUT * 0.75:
-                                client['illegal_movements'] = not game.from_json(buf)
+                            client[EMA] = WEIGHT * client[EMA] + (1 - WEIGHT) * client[TIME_SINCE_UPDATE]
+                            if client[EMA] > server_config.MOVEMENT_TIMEOUT * 0.75:
+                                client[ILLEGAL_MOVE] = not game.from_json(buf)
                             else:
-                                client['illegal_movements'] = True
+                                client[ILLEGAL_MOVE] = True
 
-                            client['time_since_update'] = 0
+                            client[TIME_SINCE_UPDATE] = 0
                 except ConnectionResetError:
-                    client['socket'] = None
+                    client[SOCKET] = None
                 except (BlockingIOError, AttributeError):
                     pass
 
@@ -94,14 +101,14 @@ def game_loop(clients):
         if time_since_transmission > server_config.MOVEMENT_TIMEOUT:
             time_since_transmission = 0
             for client in clients:
-                if client['socket']:
-                    if client['illegal_move']:
+                if client[SOCKET]:
+                    if client[ILLEGAL_MOVE]:
                         encoded_message = str.encode(game.to_json())
                     else:
                         encoded_message = str.encode(game.to_json(client['id']))
 
-                    network.message.send_msg(client['socket'][0], encoded_message)
-                    client['illegal_move'] = False
+                    network.message.send_msg(client[SOCKET][0], encoded_message)
+                    client[ILLEGAL_MOVE] = False
 
             if game.winners:
                 break
@@ -120,9 +127,8 @@ print('Received player names:')
 
 id_name_pairs = []
 for id_, client in enumerate(clients):
-    id_name_pairs.append((id_, client['name']))
+    id_name_pairs.append((id_, client[NAME]))
     client['id'] = id_
-    print(client['name'])
 
 maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
 game = game_state.GameState(id_name_pairs, maze)
@@ -136,12 +142,12 @@ for player in game.players:
 print("Sending maze data...")
 # Send the maze to all clients
 for client in clients:
-    network.message.send_msg(client['socket'][0], str.encode(maze.as_json()))
+    network.message.send_msg(client[SOCKET][0], str.encode(maze.as_json()))
 
 print("Assigning player numbers...")
 for client in clients:
     msg = dict([('player_number', client['id']), ('players', id_name_pairs)])
-    network.message.send_msg(client['socket'][0], str.encode(json.dumps(msg)))
+    network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
 
 print("Starting game!")
 game_loop(clients)
