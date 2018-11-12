@@ -97,7 +97,6 @@ def game_loop(clients):
                 except (BlockingIOError, AttributeError):
                     pass
 
-
         if time_since_transmission > server_config.MOVEMENT_TIMEOUT:
             time_since_transmission = 0
             for client in clients:
