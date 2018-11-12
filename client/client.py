@@ -35,11 +35,11 @@ network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 msg = network.message.recv_msg(client_socket)
 maze = maze.Maze(msg.decode())
 
-WIDTH = client_config.RESOLUTION
+RES = client_config.RESOLUTION
 
 # Initialize pygame rendering and time-management
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, WIDTH), DISPLAY_PARAMS)
+screen = pygame.display.set_mode((RES, RES), DISPLAY_PARAMS)
 clock = pygame.time.Clock()
 
 # Wait for starting positions
@@ -50,7 +50,7 @@ id_name_pairs = data['players']
 
 # Game state object
 game = game_state.LocalGameState(id_name_pairs, maze, my_number)
-renderer = renderer.Renderer(screen, WIDTH, game)
+renderer = renderer.Renderer(screen, RES, game)
 
 velocity = (0, 0)
 game_pos = game.players[my_number].current_pos()
@@ -113,10 +113,10 @@ while 1:
 
     # Handle exit
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:   
+        if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.VIDEORESIZE:
-            WIDTH = min(event.w, event.h)
-            renderer = renderer.update_res(WIDTH)
+            RES = min(event.w, event.h)
+            renderer = renderer.update_res(RES)
 
     pygame.display.flip()

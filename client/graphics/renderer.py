@@ -13,8 +13,6 @@ class Renderer:
         screen.fill(BLACK)
         self.res = res
 
-        self.pixel_positions = []
-
         self.game = game
         self.maze = self.game.maze
         self.width = self.maze.width

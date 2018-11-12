@@ -31,12 +31,12 @@ class Sprite(pygame.sprite.Sprite):
 
         self.image_number = 0
         self.image = self.images[self.image_number]
-        self.update_sprite = 1 # when it's 0, update sprite
+        self.frames_since_image_update = 1 # when it's 0, update sprite
 
         # Scale sprites
         size_margin = 1  # make the character slightly bigger - looks nicer
         scaling_factor = block_size / self.image.get_width()
-        new_dimensions = (  
+        new_dimensions = (
             math.floor(block_size * size_margin),
             math.floor(self.image.get_height() * scaling_factor * size_margin))
 
@@ -56,20 +56,17 @@ class Sprite(pygame.sprite.Sprite):
         self.prio = 'x'
 
     def update(self):
-        if self.update_sprite == 0:
-            self.image_number = (self.image_number + 1) % 4
-            if self.moving_right:
-                self.image = self.images[self.image_number]
-            else:
-                self.image = self.images_left[self.image_number]
-        self.update_sprite = (self.update_sprite + 1) % SPRITE_UPDATE_INTERVAL
+        if self.frames_since_image_update == SPRITE_UPDATE_INTERVAL:
+            self.next_image()
+        else:
+            self.frames_since_image_update += 1
 
         if self.player.local:
             if self.player.vel[0] < 0 and self.moving_right:
                 self.flip_direction()
             elif self.player.vel[0] > 0 and not self.moving_right:
                 self.flip_direction()
-                
+
             if self.player.illegal_move:
                 self.player.illegal_move = False
                 (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
@@ -83,9 +80,18 @@ class Sprite(pygame.sprite.Sprite):
         self.rect[0], self.rect[1] = (math.floor(self.x - self.x_offset),
                                       math.floor(self.y- self.y_offset))
 
+    def next_image(self):
+        self.image_number = (self.image_number + 1) % 4
+        if self.moving_right:
+            self.image = self.images[self.image_number]
+        else:
+            self.image = self.images_left[self.image_number]
+        self.frames_since_image_update = 0
+
     def flip_direction(self):
         self.moving_right = not self.moving_right
         self.x_offset = -self.x_offset
+        self.next_image()
 
     def handle_collision(self):
         # New x, y
@@ -95,11 +101,11 @@ class Sprite(pygame.sprite.Sprite):
         # Check if new x,y is within the map
         if new_x < 0:
             new_x = 0
-        elif new_x >= self.res:
+        elif new_x >= self.res - self.block_size:
             new_x = self.res - 1
         if new_y < 0:
             new_y = 0
-        elif new_y  > self.res:
+        elif new_y  > self.res - self.block_size:
             new_y = self.res - 1
 
         def make_rect(x, y):
