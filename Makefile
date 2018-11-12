@@ -4,7 +4,7 @@ run-client:
 	python client/client.py
 
 run-server:
-	python3 server/server.py
+	python server/server.py
 client3:
 	python3 client/client.py
 server3:

@@ -6,10 +6,6 @@ from .sprite import Sprite
 from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
 
-# globals
-FRAMES_PER_BLOCK = FRAME_RATE / BLOCKS_PER_SEC # float
-
-
 class Renderer:
     def __init__(self, screen, res, game):
         self.screen = screen
@@ -23,8 +19,6 @@ class Renderer:
         self.width = self.maze.width
 
         self.block_size = math.floor(self.res / self.width)
-        self.pixels_per_frame =  self.block_size * BLOCKS_PER_SEC / FRAME_RATE
-
 
         # draw walls only once
         self.walls = []
@@ -42,7 +36,6 @@ class Renderer:
         self.sprites = pygame.sprite.Group()
         for player in game.players:
             self.sprites.add(Sprite(game, player, self.block_size, self.walls))
-
 
     def render_game(self):
         self.sprites.update()
@@ -67,7 +60,6 @@ class Renderer:
                     if self.maze.maze[int((y // self.block_size + j) * self.width + x // self.block_size + i)]:
                         pygame.draw.rect(self.screen, GREY, (int(x) + i * self.block_size, int(y) + j * self.block_size, self.block_size, self.block_size), 0)
 
-
         self.sprites.clear(self.screen, background)
         self.sprites.draw(self.screen)
 
@@ -87,9 +79,9 @@ class Renderer:
         textsurface = font.render(winner_text, False, ORANGE)
         text_rect = textsurface.get_rect()
 
-        top_left = self.res // 2 - text_rect.w // 2, self.res // 2 - text_rect.h // 2
+        text_pos = self.res // 2 - text_rect.w // 2, self.res // 2 - text_rect.h // 2
 
-        self.screen.blit(textsurface, top_left)
+        self.screen.blit(textsurface, text_pos)
 
     def to_pixels(self, coords):
         return (

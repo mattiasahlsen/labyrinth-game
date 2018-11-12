@@ -55,7 +55,6 @@ class LocalGameState(GameState):
         self.local_player = local_id
         self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id], self.players[local_id].name)
 
-    # client_to_json() packages the local player into json
     def to_json(self):
         return json.dumps(self.players[self.local_player].serializable())
 

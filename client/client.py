@@ -9,7 +9,6 @@ import json
 import pygame
 import network.message
 from graphics import renderer
-from graphics import input_box
 from game import game_state, maze
 
 import client_config

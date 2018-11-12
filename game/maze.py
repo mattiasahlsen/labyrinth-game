@@ -6,15 +6,10 @@ UNVISITED_CELL = 5
 
 class Maze:
     def __init__(self, json_data=None):
-        if not json_data:
-            self.load_maze_from_file()
-        else:
+        if json_data:
             self.from_json(json_data)
-
-    def load_maze_from_file(self):
-        file = open(path.dirname(path.realpath(__file__)) + '/maze.json', 'r')
-        data = file.read()
-        self.from_json(data)
+        else:
+            raise ValueError('Invalid call to Maze() constructor')
 
     def as_json(self):
         data = dict([('width', self.width),

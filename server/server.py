@@ -4,7 +4,6 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
 import socket
-import errno
 import json
 import pygame
 from game import maze, game_state
@@ -61,7 +60,7 @@ def wait_nicknames(clients):
                 client[NAME] = msg
                 count += 1
 
-def game_loop(clients):
+def game_loop(clients, game):
     pygame.init()
     clock = pygame.time.Clock()
 
@@ -82,16 +81,15 @@ def game_loop(clients):
             if client[SOCKET]:
                 try:
                     buf = network.message.recv_msg(client[SOCKET][0])
-                    if buf:
+                    if buf and buf.decode():
                         buf = buf.decode()
-                        if buf:
-                            client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * client[TIME_SINCE_UPDATE]
-                            if client[EMA] > config.MOVEMENT_TIMEOUT * (1 - server_config.TIMEOUT_MARGIN):
-                                client[ILLEGAL_MOVE] = not game.from_json(buf)
-                            else:
-                                client[ILLEGAL_MOVE] = True
+                        client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * client[TIME_SINCE_UPDATE]
+                        if client[EMA] > config.MOVEMENT_TIMEOUT * (1 - server_config.TIMEOUT_MARGIN):
+                            client[ILLEGAL_MOVE] = not game.from_json(buf)
+                        else:
+                            client[ILLEGAL_MOVE] = True
 
-                            client[TIME_SINCE_UPDATE] = 0
+                        client[TIME_SINCE_UPDATE] = 0
                 except ConnectionResetError:
                     client[SOCKET] = None
                 except (BlockingIOError, AttributeError):
@@ -149,4 +147,4 @@ for client in clients:
     network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
 
 print("Starting game!")
-game_loop(clients)
+game_loop(clients, game)

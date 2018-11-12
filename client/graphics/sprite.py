@@ -16,13 +16,10 @@ class Sprite(pygame.sprite.Sprite):
     def __init__(self, game, player, block_size, walls):
         pygame.sprite.Sprite.__init__(self)
 
-        # should be a float
         self.pixels_per_frame =  block_size * BLOCKS_PER_SEC / FRAME_RATE
-
-        self.game = game
-        self.maze = self.game.maze
         self.player = player
         self.block_size = block_size
+        self.res = game.maze.width * block_size
         self.walls = walls
 
         get_image = lambda n: os.path.join(DIR, 'sprites/sprites/elf_f_run_anim_f' + str(n) + '.png')
@@ -33,85 +30,30 @@ class Sprite(pygame.sprite.Sprite):
         self.image = self.images[self.image_number]
         self.update_sprite = 1 # when it's 0, update sprite
 
-        self.img_width = self.image.get_width()
-        self.img_height = self.image.get_height()
-        self.x_offset = self.img_width / 2
-        self.y_offset = self.img_width * 1.2 # to look better
+        self.x_offset = self.image.get_width() / 2
+        self.y_offset = self.image.get_height() * 0.75
 
         self.radius = self.block_size / 2 # pixels to center
         self.x = player.x * block_size + self.radius # pixel position
         self.y = player.y * block_size + self.radius
         self.rect = pygame.Rect(round(self.x - self.x_offset), round(self.y - self.y_offset),
-                                self.img_width, self.img_height)
+                                self.image.get_width(), self.image.get_height())
 
         self.prio = 'x'
-        self.clock = pygame.time.Clock()
-        self.time_since_server_update = 0
 
     def update(self):
-        self.clock.tick()
-
-        self.time_since_server_update += self.clock.get_time()
-
         if self.update_sprite == 0:
             self.image_number = (self.image_number + 1) % 4
             self.image = self.images[self.image_number]
         self.update_sprite = (self.update_sprite + 1) % SPRITE_UPDATE_INTERVAL
-
 
         if self.player.local:
             if self.player.illegal_move:
                 self.player.illegal_move = False
                 (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
                 (self.x, self.y) = (self.x + self.radius, self.y + self.radius)
-
             else:
-                new_x = self.x + self.pixels_per_frame * self.player.vel[0]
-                new_y = self.y + self.pixels_per_frame * self.player.vel[1]
-
-                maze_pixel_width = self.maze.width * self.block_size
-                if new_x - self.radius < 0:
-                    new_x = self.radius
-                elif new_x + self.radius > maze_pixel_width:
-                    new_x = maze_pixel_width - self.radius
-                if new_y - self.radius < 0:
-                    new_y = self.radius
-                elif new_y + self.radius > maze_pixel_width:
-                    new_y = maze_pixel_width - self.radius
-
-
-                def make_rect(x, y):
-                    return pygame.Rect(x - self.radius, y - self.radius,
-                                       self.block_size, self.block_size)
-
-                bounding_rect = make_rect(new_x, new_y)
-
-
-                wall = bounding_rect.collidelist(self.walls)
-                if not wall == -1:
-                    if make_rect(self.x, new_y).collidelist(self.walls) == -1:
-                        new_x = self.x
-                    elif make_rect(new_x, self.y).collidelist(self.walls) == -1:
-                        new_y = self.y
-                    else:
-                        new_x, new_y = self.x, self.y
-
-                self.x, self.y = new_x, new_y
-
-            new_pos = self.to_coords((self.x, self.y))
-            if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
-                # can't move in x and y at the same time
-                if self.prio == 'x':
-                    self.player.x = new_pos[0]
-                    self.prio = 'y'
-                else:
-                    self.player.y = new_pos[1]
-                    self.prio = 'x'
-
-            elif new_pos != (self.player.x, self.player.y):
-                self.player.x, self.player.y = new_pos
-
-
+                self.handle_collision()
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = self.x + (realX - self.x) / FRAMES_PER_TICK
@@ -119,6 +61,51 @@ class Sprite(pygame.sprite.Sprite):
 
         self.rect[0], self.rect[1] = (round(self.x - self.x_offset),
                                       round(self.y - self.y_offset))
+
+    def handle_collision(self):
+        # New x, y
+        new_x = self.x + self.pixels_per_frame * self.player.vel[0]
+        new_y = self.y + self.pixels_per_frame * self.player.vel[1]
+
+        # Check if new x,y is within the map
+        if new_x - self.radius < 0:
+            new_x = self.radius
+        elif new_x + self.radius > self.res:
+            new_x = self.res - self.radius
+        if new_y - self.radius < 0:
+            new_y = self.radius
+        elif new_y + self.radius > self.res:
+            new_y = self.res - self.radius
+
+        def make_rect(x, y):
+            return pygame.Rect(x - self.radius, y - self.radius,
+                                self.block_size, self.block_size)
+
+        bounding_rect = make_rect(new_x, new_y)
+
+        wall = bounding_rect.collidelist(self.walls)
+        if not wall == -1:
+            if make_rect(self.x, new_y).collidelist(self.walls) == -1:
+                new_x = self.x
+            elif make_rect(new_x, self.y).collidelist(self.walls) == -1:
+                new_y = self.y
+            else:
+                new_x, new_y = self.x, self.y
+
+        self.x, self.y = new_x, new_y
+
+        new_pos = self.to_coords((self.x, self.y))
+        if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
+            # can't move in both x and y direction at the same time
+            if self.prio == 'x':
+                self.player.x = new_pos[0]
+                self.prio = 'y'
+            else:
+                self.player.y = new_pos[1]
+                self.prio = 'x'
+
+        elif new_pos != (self.player.x, self.player.y):
+            self.player.x, self.player.y = new_pos
 
     def to_pixels(self, coords):
         return (
@@ -131,8 +118,3 @@ class Sprite(pygame.sprite.Sprite):
             math.floor(pixels[0] / self.block_size),
             math.floor(pixels[1] / self.block_size)
         )
-
-    def legal_move_pixels(self, origin, target):
-        o = self.to_coords(origin)
-        t = self.to_coords(target)
-        return abs(t[0] - o[0]) + abs(t[1] - o[1]) < 2
