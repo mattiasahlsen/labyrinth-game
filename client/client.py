@@ -19,9 +19,13 @@ def connect(ip, port):
     client_socket.connect((ip, port))
     return client_socket
 
+# Game constants
+DISPLAY_PARAMS = pygame.RESIZABLE
 PLAYER_NAME = input('Nickname: ')
+
 # Network constants
 SERVER_IP = input('IP of server: ')
+
 # Connect to server
 client_socket = connect(SERVER_IP, config.SERVER_PORT)
 
@@ -31,11 +35,11 @@ network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 msg = network.message.recv_msg(client_socket)
 maze = maze.Maze(msg.decode())
 
-WIDTH = maze.width * 10
+WIDTH = client_config.RESOLUTION
 
 # Initialize pygame rendering and time-management
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, WIDTH))
+screen = pygame.display.set_mode((WIDTH, WIDTH), DISPLAY_PARAMS)
 clock = pygame.time.Clock()
 
 # Wait for starting positions
@@ -109,7 +113,10 @@ while 1:
 
     # Handle exit
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == pygame.QUIT:   
             sys.exit()
+        elif event.type == pygame.VIDEORESIZE:
+            WIDTH = min(event.w, event.h)
+            renderer = renderer.update_res(WIDTH)
 
     pygame.display.flip()
