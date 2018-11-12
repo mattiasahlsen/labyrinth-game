@@ -7,8 +7,6 @@ from client_config import FRAME_RATE, BLOCKS_PER_SEC
 # max updates to server per second (also move speed in coords)
 from config import TICK_RATE
 
-clock = pygame.time.Clock()
-
 # globals
 DIR = os.path.dirname(os.path.realpath(__file__))
 FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
@@ -47,12 +45,13 @@ class Sprite(pygame.sprite.Sprite):
                                 self.img_width, self.img_height)
 
         self.prio = 'x'
+        self.clock = pygame.time.Clock()
         self.time_since_server_update = 0
 
     def update(self):
-        clock.tick()
+        self.clock.tick()
 
-        self.time_since_server_update += clock.get_time()
+        self.time_since_server_update += self.clock.get_time()
 
         if self.update_sprite == 0:
             self.image_number = (self.image_number + 1) % 4
@@ -162,6 +161,7 @@ class Sprite(pygame.sprite.Sprite):
 
                     self.time_since_server_update = 0
         else:
+            self.x, self.y = self.to_pixels((self.player.x, self.player.y))
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
             self.x = self.x + (realX - self.x) / FRAMES_PER_TICK
             self.y = self.y + (realY - self.y) / FRAMES_PER_TICK
