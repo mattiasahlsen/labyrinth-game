@@ -12,6 +12,8 @@ DIR = os.path.dirname(os.path.realpath(__file__))
 FRAMES_PER_TICK = FRAME_RATE / BLOCKS_PER_SEC # float
 SPRITE_UPDATE_INTERVAL = math.floor(FRAME_RATE / 8)
 
+IMAGES = ['elf_m', 'elf_f', 'knight_m', 'knight_f']
+
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, game, player, block_size, walls):
         pygame.sprite.Sprite.__init__(self)
@@ -92,6 +94,15 @@ class Sprite(pygame.sprite.Sprite):
         self.moving_right = not self.moving_right
         self.x_offset = -self.x_offset
         self.next_image()
+
+    def get_images(self):
+        prefix = os.path.join(DIR, 'sprites/sprites/')
+        get_img = lambda n: prefix + IMAGES[0] + '_run_anim_f' + str(n) + '.png'
+
+        images = []
+        for i in range(0, 4):
+            images.append(get_img(i))
+        return images
 
     def handle_collision(self):
         # New x, y

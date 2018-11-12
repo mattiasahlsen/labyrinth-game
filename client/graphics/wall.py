@@ -14,9 +14,9 @@ class Wall(pygame.sprite.Sprite):
 
         self.image = pygame.image.load(tile)
         self.image = pygame.transform.scale(self.image, (size, size))
-        
+
         #self.image = pygame.Surface((size, size))
         #self.image.fill((128,128,128))
 
         self.rect = pixel_coords[0], pixel_coords[1], size, size
-        
+

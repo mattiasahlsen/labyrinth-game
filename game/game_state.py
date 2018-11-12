@@ -44,7 +44,9 @@ class GameState:
 
         if self.legal_move(p.current_pos(), new_pos):
             p.move_to(new_pos)
-            if new_pos == self.maze.goal:
+            (gx, gy), (x, y) = self.maze.goal, new_pos
+            dx, dy = gx - x, gy - y
+            if dx <= 1 and dx >= 0 and dy <= 1 and dy >= 0:
                 self.winners.append(data['id'])
             return True
         return False

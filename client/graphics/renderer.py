@@ -1,11 +1,14 @@
 import math
 import pygame
+from os import path
 from graphics.colors import *
 from .sprite import Sprite
 from .wall import Wall
 
 from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
+
+DIR = path.dirname(path.realpath(__file__))
 
 class Renderer:
     def __init__(self, screen, res, game):
@@ -19,53 +22,37 @@ class Renderer:
 
         self.block_size = math.floor(self.res / self.width)
 
-        # draw walls only once
-        self.walls = pygame.sprite.RenderPlain()
+        self.sprites = pygame.sprite.RenderPlain()
         walls_rect = []
         for y in range(self.width):
             for x in range(self.width):
                 if self.maze.maze[y * self.width + x]:
-                    self.walls.add(
+                    self.sprites.add(
                         Wall((x * self.block_size, y * self.block_size), self.block_size)
                     )
                     walls_rect.append(
                          pygame.Rect(x * self.block_size, y * self.block_size, self.block_size, self.block_size)
                     )
 
+        # goal sprite
         (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
-        pygame.draw.rect(self.screen, YELLOW,
-                        (goal_x, goal_y, self.block_size, self.block_size))
+        self.goal = pygame.sprite.Sprite()
+        self.goal.image = pygame.image.load(path.join(DIR, 'sprites/sprites/coin_anim_f0.png'))
+        self.goal.image = pygame.transform.scale(self.goal.image, (self.block_size, self.block_size))
 
-        self.sprites = pygame.sprite.Group()
+        self.goal.rect = pygame.Rect(goal_x, goal_y, self.block_size, self.block_size)
+        self.sprites.add(self.goal)
+
+        self.player_sprites = pygame.sprite.Group()
         for player in game.players:
-            self.sprites.add(Sprite(game, player, self.block_size, walls_rect))
+            self.player_sprites.add(Sprite(game, player, self.block_size, walls_rect))
 
     def render_game(self):
-        self.sprites.update()
+        self.screen.fill(BLACK)
+        self.player_sprites.update()
 
-        # reset background behind the sprite
-        def background(surf, rect):
-            surf.fill(BLACK, rect)
-            (x, y, width, height) = rect
-            x_margin = x % self.block_size
-            y_margin = y % self.block_size
-            x -= x_margin
-            y -= y_margin
-            width = width + x_margin
-            height = height + y_margin
-            if not width % self.block_size == 0:
-                width += self.block_size - width % self.block_size
-            if not height % self.block_size == 0:
-                height += self.block_size - height % self.block_size
-
-            for i in range(0, int(width / self.block_size)):
-                for j in range(0, int(height / self.block_size)):
-                    if self.maze.maze[int((y // self.block_size + j) * self.width + x // self.block_size + i)]:
-                        pygame.draw.rect(self.screen, GREY, (int(x) + i * self.block_size, int(y) + j * self.block_size, self.block_size, self.block_size), 0)
-
-        self.sprites.clear(self.screen, background)
+        self.player_sprites.draw(self.screen)
         self.sprites.draw(self.screen)
-        self.walls.draw(self.screen)
 
     def update_res(self, res):
         return Renderer(self.screen, res, self.game)
