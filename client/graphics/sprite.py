@@ -61,87 +61,42 @@ class Sprite(pygame.sprite.Sprite):
 
         if self.player.local:
             if self.player.illegal_move:
-                print('illegal')
                 self.player.illegal_move = False
                 (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
                 (self.x, self.y) = (self.x + self.radius, self.y + self.radius)
 
             else:
-                self.x += self.pixels_per_frame * self.player.vel[0]
-                self.y += self.pixels_per_frame * self.player.vel[1]
+                new_x = self.x + self.pixels_per_frame * self.player.vel[0]
+                new_y = self.y + self.pixels_per_frame * self.player.vel[1]
 
                 maze_pixel_width = self.maze.width * self.block_size
-                if self.x - self.radius < 0:
-                    self.x = self.radius
-                elif self.x + self.radius > maze_pixel_width:
-                    self.x = maze_pixel_width - self.radius
-                if self.y - self.radius < 0:
-                    self.y = self.radius
-                elif self.y + self.radius > maze_pixel_width:
-                    self.y = maze_pixel_width - self.radius
+                if new_x - self.radius < 0:
+                    new_x = self.radius
+                elif new_x + self.radius > maze_pixel_width:
+                    new_x = maze_pixel_width - self.radius
+                if new_y - self.radius < 0:
+                    new_y = self.radius
+                elif new_y + self.radius > maze_pixel_width:
+                    new_y = maze_pixel_width - self.radius
 
 
-                bounding_rect = pygame.Rect(round(self.x - self.radius),
-                                            round(self.y - self.radius),
-                                            self.block_size, self.block_size)
+                def make_rect(x, y):
+                    return pygame.Rect(x - self.radius, y - self.radius,
+                                       self.block_size, self.block_size)
+
+                bounding_rect = make_rect(new_x, new_y)
 
 
-                walls = bounding_rect.collidelistall(self.walls)
-                if walls:
-                    for wall_index in walls:
-                        wall = self.walls[wall_index]
+                wall = bounding_rect.collidelist(self.walls)
+                if not wall == -1:
+                    if make_rect(self.x, new_y).collidelist(self.walls) == -1:
+                        new_x = self.x
+                    elif make_rect(new_x, self.y).collidelist(self.walls) == -1:
+                        new_y = self.y
+                    else:
+                        new_x, new_y = self.x, self.y
 
-                        x_intsec_1 = wall.x + self.block_size - bounding_rect.x
-                        x_intsec_2 = wall.x - (bounding_rect.x + self.block_size)
-                        y_intsec_1 = wall.y + self.block_size - bounding_rect.y
-                        y_intsec_2 = wall.y - (bounding_rect.y + self.block_size)
-
-                        x_intersect = (x_intsec_1 if abs(x_intsec_1) < abs(x_intsec_2)
-                            else x_intsec_2)
-                        y_intersect = (y_intsec_1 if abs(y_intsec_1) < abs(y_intsec_2)
-                            else y_intsec_2)
-
-                        def make_rect(x, y):
-                            return pygame.Rect(x, y,
-                                               self.block_size,
-                                               self.block_size)
-
-                        next_bounding_rect_x = make_rect(
-                            bounding_rect.x + x_intersect,
-                            bounding_rect.y)
-                        next_bounding_rect_y = make_rect(
-                            bounding_rect.x,
-                            bounding_rect.y + y_intersect)
-                        next_bounding_rect_both = make_rect(
-                            bounding_rect.x + x_intersect,
-                            bounding_rect.y + y_intersect)
-                        if (abs(x_intersect) < abs(y_intersect) and
-                            abs(x_intersect) < 1.5 * self.pixels_per_frame
-                            and next_bounding_rect_x.collidelist(self.walls) == -1
-                            and self.legal_move_pixels((self.x, self.y), (next_bounding_rect_x.x + self.radius, next_bounding_rect_x.y + self.radius))
-                        ):
-                            print('check 1')
-                            self.x = next_bounding_rect_x.x + self.radius
-                            break
-
-                        elif (abs(y_intersect) < abs(x_intersect)
-                            and abs(y_intersect) < 1.5 * self.pixels_per_frame
-                            and next_bounding_rect_y.collidelist(self.walls) == -1
-                            and self.legal_move_pixels((self.x, self.y), (next_bounding_rect_y.x + self.radius, next_bounding_rect_y.y + self.radius))
-                        ):
-                            print('check 2')
-                            self.y = next_bounding_rect_y.y + self.radius
-                            break
-                        elif (abs(x_intersect) < 1.5 * self.pixels_per_frame
-                            and abs(y_intersect) < 1.5 * self.pixels_per_frame
-                            and next_bounding_rect_y.collidelist(self.walls) == -1
-                            and self.legal_move_pixels((self.x, self.y), (next_bounding_rect_both.x + self.radius, next_bounding_rect_both.y + self.radius))
-                        ):
-                            print('check 3')
-                            self.x = next_bounding_rect_both.x + self.radius
-                            self.y = next_bounding_rect_both.y + self.radius
-                            break
-
+                self.x, self.y = new_x, new_y
 
             new_pos = self.to_coords((self.x, self.y))
             if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
