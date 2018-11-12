@@ -14,7 +14,7 @@ import server_config
 import config
 
 PLAYERS = int(input('Number of players: '))            # amount of players
-WEIGHT = server_config.WEIGHT
+EMA_WEIGHT = server_config.EMA_WEIGHT
 
 # Client dict keys
 NAME = 'name'
@@ -85,7 +85,7 @@ def game_loop(clients):
                     if buf:
                         buf = buf.decode()
                         if buf:
-                            client[EMA] = WEIGHT * client[EMA] + (1 - WEIGHT) * client[TIME_SINCE_UPDATE]
+                            client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * client[TIME_SINCE_UPDATE]
                             if client[EMA] > config.MOVEMENT_TIMEOUT * (1 - config.TIMEOUT_MARGIN):
                                 client[ILLEGAL_MOVE] = not game.from_json(buf)
                             else:

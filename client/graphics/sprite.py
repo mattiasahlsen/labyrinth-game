@@ -101,20 +101,17 @@ class Sprite(pygame.sprite.Sprite):
             new_pos = self.to_coords((self.x, self.y))
             if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
                 # can't move in x and y at the same time
-                if self.time_since_server_update > config.MOVEMENT_TIMEOUT:
-                    if self.prio == 'x':
-                        self.player.x = new_pos[0]
-                        self.prio = 'y'
-                    else:
-                        self.player.y = new_pos[1]
-                        self.prio = 'x'
+                if self.prio == 'x':
+                    self.player.x = new_pos[0]
+                    self.prio = 'y'
+                else:
+                    self.player.y = new_pos[1]
+                    self.prio = 'x'
 
-                    self.time_since_server_update = 0
             elif new_pos != (self.player.x, self.player.y):
-                if self.time_since_server_update > config.MOVEMENT_TIMEOUT:
-                    self.player.x, self.player.y = new_pos
+                self.player.x, self.player.y = new_pos
 
-                    self.time_since_server_update = 0
+                
         else:
             self.x, self.y = self.to_pixels((self.player.x, self.player.y))
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
