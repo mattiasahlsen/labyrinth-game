@@ -23,10 +23,12 @@ class Sprite(pygame.sprite.Sprite):
         self.walls = walls
 
         get_image = lambda n: os.path.join(DIR, 'sprites/sprites/elf_f_run_anim_f' + str(n) + '.png')
+        self.moving_right = True
         self.images = []
-        self.images_right = True
+        self.images_left = []
         for n in range(0, 4):
             self.images.append(pygame.image.load(get_image(n)))
+
         self.image_number = 0
         self.image = self.images[self.image_number]
         self.update_sprite = 1 # when it's 0, update sprite
@@ -40,6 +42,7 @@ class Sprite(pygame.sprite.Sprite):
 
         for i in range(0, 4):
             self.images[i] = pygame.transform.scale(self.images[i], new_dimensions)
+            self.images_left.append(pygame.transform.flip(self.images[i], True, False))
 
         self.x_offset = -2 * scaling_factor * size_margin    # the sprite should be moved about 2 pixels to the right
         self.y_offset = 12 * scaling_factor * size_margin    # move 12 pixels up
@@ -55,13 +58,16 @@ class Sprite(pygame.sprite.Sprite):
     def update(self):
         if self.update_sprite == 0:
             self.image_number = (self.image_number + 1) % 4
-            self.image = self.images[self.image_number]
+            if self.moving_right:
+                self.image = self.images[self.image_number]
+            else:
+                self.image = self.images_left[self.image_number]
         self.update_sprite = (self.update_sprite + 1) % SPRITE_UPDATE_INTERVAL
 
         if self.player.local:
-            if self.player.vel[0] < 0 and self.images_right:
+            if self.player.vel[0] < 0 and self.moving_right:
                 self.flip_direction()
-            elif self.player.vel[0] > 0 and not self.images_right:
+            elif self.player.vel[0] > 0 and not self.moving_right:
                 self.flip_direction()
                 
             if self.player.illegal_move:
@@ -78,9 +84,7 @@ class Sprite(pygame.sprite.Sprite):
                                       math.floor(self.y- self.y_offset))
 
     def flip_direction(self):
-        for i in range(len(self.images)):
-            self.images[i] = pygame.transform.flip(self.images[i], True, False)
-        self.images_right = not self.images_right
+        self.moving_right = not self.moving_right
         self.x_offset = -self.x_offset
 
     def handle_collision(self):
