@@ -2,6 +2,7 @@ import math
 import pygame
 from graphics.colors import *
 from .sprite import Sprite
+from .wall import Wall
 
 from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
@@ -21,12 +22,16 @@ class Renderer:
         self.block_size = math.floor(self.res / self.width)
 
         # draw walls only once
-        self.walls = []
+        self.walls = pygame.sprite.RenderPlain()
+        walls_rect = []
         for y in range(self.width):
             for x in range(self.width):
                 if self.maze.maze[y * self.width + x]:
-                    self.walls.append(
-                       pygame.draw.rect(self.screen, GREY, (x * self.block_size, y * self.block_size, self.block_size, self.block_size), 0)
+                    self.walls.add(
+                        Wall((x * self.block_size, y * self.block_size), self.block_size)
+                    )
+                    walls_rect.append(
+                         pygame.Rect(x * self.block_size, y * self.block_size, self.block_size, self.block_size)
                     )
 
         (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
@@ -35,7 +40,7 @@ class Renderer:
 
         self.sprites = pygame.sprite.Group()
         for player in game.players:
-            self.sprites.add(Sprite(game, player, self.block_size, self.walls))
+            self.sprites.add(Sprite(game, player, self.block_size, walls_rect))
 
     def render_game(self):
         self.sprites.update()
@@ -62,6 +67,10 @@ class Renderer:
 
         self.sprites.clear(self.screen, background)
         self.sprites.draw(self.screen)
+        self.walls.draw(self.screen)
+
+    def update_res(self, res):
+        return Renderer(self.screen, res, self.game)
 
     def finish(self):
         winner_amount = len(self.game.winners)
