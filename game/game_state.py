@@ -53,7 +53,7 @@ class LocalGameState(GameState):
     def __init__(self, players, maze, local_id):
         GameState.__init__(self, players, maze)
         self.local_player = local_id
-        self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id], players[local_id])
+        self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id], self.players[local_id].name)
 
     # client_to_json() packages the local player into json
     def to_json(self):
