@@ -52,6 +52,23 @@ def random_maze(width=150, complexity=.5, density=.8, players=4):
 
     return Maze(json.dumps(j))
 
+def empty_maze(width=150, players=4):
+    bit_array = []
+    for i in range(width * width):
+        bit_array.append(0)
+
+    start_pos = [[0, 0], [width - 1, 0], [0, width - 1], [width - 1, width - 1]]
+    goal = (width // 2, width // 2)
+    j = dict([
+        ('width', width),
+        ('max_players', players),
+        ('starting_locations', start_pos),
+        ('goal', goal),
+        ('bit_array', bit_array)
+    ])
+
+    return Maze(json.dumps(j))
+
 # Convert 2D array to 1D array
 def two_d_to_bit(two_d_array):
     bit_array = []
