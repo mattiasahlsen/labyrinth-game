@@ -1,5 +1,6 @@
-MOVEMENT_TIMEOUT = 40   # timeout for moving one unit
 HOST = ''
 MAP_COMPLEXITY  = .5
 MAP_DENSITY     = .8
-WEIGHT = 0.75
+WEIGHT = 0.8
+
+TICK_RATE = 40

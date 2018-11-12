@@ -68,12 +68,12 @@ def game_loop(clients):
     for client in clients:
         client[TIME_SINCE_UPDATE] = 0
         client[ILLEGAL_MOVE] = False
-        client[EMA] = server_config.MOVEMENT_TIMEOUT + 20
+        client[EMA] = config.MOVEMENT_TIMEOUT + 20
 
     time_since_transmission = 0
 
     while True:
-        clock.tick(config.TICK_RATE)
+        clock.tick(server_config.TICK_RATE)
         time_since_transmission += clock.get_time()
 
         # Read all sockets
@@ -86,7 +86,7 @@ def game_loop(clients):
                         buf = buf.decode()
                         if buf:
                             client[EMA] = WEIGHT * client[EMA] + (1 - WEIGHT) * client[TIME_SINCE_UPDATE]
-                            if client[EMA] > server_config.MOVEMENT_TIMEOUT * 0.75:
+                            if client[EMA] > config.MOVEMENT_TIMEOUT * (1 - config.TIMEOUT_MARGIN):
                                 client[ILLEGAL_MOVE] = not game.from_json(buf)
                             else:
                                 client[ILLEGAL_MOVE] = True
@@ -97,7 +97,7 @@ def game_loop(clients):
                 except (BlockingIOError, AttributeError):
                     pass
 
-        if time_since_transmission > server_config.MOVEMENT_TIMEOUT:
+        if time_since_transmission > config.MOVEMENT_TIMEOUT:
             time_since_transmission = 0
             for client in clients:
                 if client[SOCKET]:

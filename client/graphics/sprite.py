@@ -5,11 +5,11 @@ import pygame
 
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
 # max updates to server per second (also move speed in coords)
-from config import TICK_RATE
+import config
 
 # globals
 DIR = os.path.dirname(os.path.realpath(__file__))
-FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
+FRAMES_PER_TICK = FRAME_RATE / BLOCKS_PER_SEC # float
 SPRITE_UPDATE_INTERVAL = math.floor(FRAME_RATE / 8)
 
 class Sprite(pygame.sprite.Sprite):
@@ -101,7 +101,7 @@ class Sprite(pygame.sprite.Sprite):
             new_pos = self.to_coords((self.x, self.y))
             if new_pos[0] != self.player.x and new_pos[1] != self.player.y:
                 # can't move in x and y at the same time
-                if self.time_since_server_update > 1000 / TICK_RATE:
+                if self.time_since_server_update > config.MOVEMENT_TIMEOUT:
                     if self.prio == 'x':
                         self.player.x = new_pos[0]
                         self.prio = 'y'
@@ -111,7 +111,7 @@ class Sprite(pygame.sprite.Sprite):
 
                     self.time_since_server_update = 0
             elif new_pos != (self.player.x, self.player.y):
-                if self.time_since_server_update > 1000 / TICK_RATE:
+                if self.time_since_server_update > config.MOVEMENT_TIMEOUT:
                     self.player.x, self.player.y = new_pos
 
                     self.time_since_server_update = 0

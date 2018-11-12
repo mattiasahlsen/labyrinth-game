@@ -3,11 +3,11 @@ import pygame
 from graphics.colors import *
 from .sprite import Sprite
 
-from config import GAME_WIDTH, TICK_RATE
+from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC
 
 # globals
-FRAMES_PER_TICK = FRAME_RATE / TICK_RATE # float
+FRAMES_PER_BLOCK = FRAME_RATE / BLOCKS_PER_SEC # float
 
 
 class Renderer:
