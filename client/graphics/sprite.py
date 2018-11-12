@@ -52,7 +52,7 @@ class Sprite(pygame.sprite.Sprite):
     def update(self):
         clock.tick()
 
-        self.time_since_server_update = clock.get_time()
+        self.time_since_server_update += clock.get_time()
 
         if self.update_sprite == 0:
             self.image_number = (self.image_number + 1) % 4
@@ -144,7 +144,7 @@ class Sprite(pygame.sprite.Sprite):
 
                     self.time_since_server_update = 0
             elif new_pos != (self.player.x, self.player.y):
-                if clock.get_time() > 1000 / TICK_RATE:
+                if self.time_since_server_update > 1000 / TICK_RATE:
                     self.player.x, self.player.y = new_pos
 
                     self.time_since_server_update = 0
