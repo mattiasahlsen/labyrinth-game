@@ -62,6 +62,7 @@ class Sprite(pygame.sprite.Sprite):
 
         if self.player.local:
             if self.player.illegal_move:
+                print('illegal')
                 self.player.illegal_move = False
                 (self.x, self.y) = self.to_pixels((self.player.x, self.player.y))
                 (self.x, self.y) = (self.x + self.radius, self.y + self.radius)
@@ -118,17 +119,29 @@ class Sprite(pygame.sprite.Sprite):
                         if (abs(x_intersect) < abs(y_intersect) and
                             abs(x_intersect) < 1.5 * self.pixels_per_frame
                             and next_bounding_rect_x.collidelist(self.walls) == -1
+                            and self.legal_move_pixels((self.x, self.y), (next_bounding_rect_x.x + self.radius, next_bounding_rect_x.y + self.radius))
                         ):
+                            print('check 1')
                             self.x = next_bounding_rect_x.x + self.radius
+                            break
 
                         elif (abs(y_intersect) < abs(x_intersect)
                             and abs(y_intersect) < 1.5 * self.pixels_per_frame
                             and next_bounding_rect_y.collidelist(self.walls) == -1
+                            and self.legal_move_pixels((self.x, self.y), (next_bounding_rect_y.x + self.radius, next_bounding_rect_y.y + self.radius))
                         ):
+                            print('check 2')
                             self.y = next_bounding_rect_y.y + self.radius
-                        else:
+                            break
+                        elif (abs(x_intersect) < 1.5 * self.pixels_per_frame
+                            and abs(y_intersect) < 1.5 * self.pixels_per_frame
+                            and next_bounding_rect_y.collidelist(self.walls) == -1
+                            and self.legal_move_pixels((self.x, self.y), (next_bounding_rect_both.x + self.radius, next_bounding_rect_both.y + self.radius))
+                        ):
+                            print('check 3')
                             self.x = next_bounding_rect_both.x + self.radius
                             self.y = next_bounding_rect_both.y + self.radius
+                            break
 
 
             new_pos = self.to_coords((self.x, self.y))
@@ -150,8 +163,8 @@ class Sprite(pygame.sprite.Sprite):
                     self.time_since_server_update = 0
         else:
             (realX, realY) = self.to_pixels((self.player.x, self.player.y))
-            self.x = (realX - self.x) / FRAMES_PER_TICK
-            self.y = (realY - self.y) / FRAMES_PER_TICK
+            self.x = self.x + (realX - self.x) / FRAMES_PER_TICK
+            self.y = self.y + (realY - self.y) / FRAMES_PER_TICK
 
         self.rect[0], self.rect[1] = (round(self.x - self.x_offset),
                                       round(self.y - self.y_offset))
@@ -167,3 +180,8 @@ class Sprite(pygame.sprite.Sprite):
             math.floor(pixels[0] / self.block_size),
             math.floor(pixels[1] / self.block_size)
         )
+
+    def legal_move_pixels(self, origin, target):
+        o = self.to_coords(origin)
+        t = self.to_coords(target)
+        return abs(t[0] - o[0]) + abs(t[1] - o[1]) < 2
