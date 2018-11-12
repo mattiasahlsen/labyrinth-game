@@ -115,13 +115,13 @@ class Sprite(pygame.sprite.Sprite):
                         next_bounding_rect_both = make_rect(
                             bounding_rect.x + x_intersect,
                             bounding_rect.y + y_intersect)
-                        if (x_intersect < y_intersect and
+                        if (abs(x_intersect) < abs(y_intersect) and
                             abs(x_intersect) < 1.5 * self.pixels_per_frame
                             and next_bounding_rect_x.collidelist(self.walls) == -1
                         ):
                             self.x = next_bounding_rect_x.x + self.radius
 
-                        elif (y_intersect < x_intersect
+                        elif (abs(y_intersect) < abs(x_intersect)
                             and abs(y_intersect) < 1.5 * self.pixels_per_frame
                             and next_bounding_rect_y.collidelist(self.walls) == -1
                         ):
