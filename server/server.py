@@ -1,5 +1,6 @@
 import sys
 import os.path
+import math
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
@@ -12,15 +13,19 @@ import network.message
 import server_config
 import config
 
-PLAYERS = int(input('Number of players: '))            # amount of players
 EMA_WEIGHT = server_config.EMA_WEIGHT
+MAX_SPEED = 1000 / config.MOVEMENT_TIMEOUT # squares per second
+
+PLAYERS = int(input('Number of players: '))            # amount of players
 
 # Client dict keys
+PLAYER = 'player'
 NAME = 'name'
 SOCKET = 'socket'
 EMA = 'ema'
 TIME_SINCE_UPDATE = 'time_since_update'
 ILLEGAL_MOVE = 'illegal_move'
+POSITIONS = 'positions'
 
 def wait_players():
     port = config.SERVER_PORT
@@ -60,6 +65,12 @@ def wait_nicknames(clients):
                 client[NAME] = msg
                 count += 1
 
+# used for weighting average
+# get avg speed in squares per second
+def avg_speed(e1, e2):
+    dx, dy, dt = e2[0] - e1[0], e2[1] - e1[1], (e2[2] - e1[2]) / 1000
+    return math.sqrt(dx**2 + dy**2) / dt
+
 def game_loop(clients, game):
     pygame.init()
     clock = pygame.time.Clock()
@@ -67,7 +78,8 @@ def game_loop(clients, game):
     for client in clients:
         client[TIME_SINCE_UPDATE] = 0
         client[ILLEGAL_MOVE] = False
-        client[EMA] = config.MOVEMENT_TIMEOUT + 20
+        client[EMA] = 0
+        client[POSITIONS] = [(client[PLAYER].x, client[PLAYER].y, 0)] * server_config.COLLECTED_MOVES
 
     time_since_transmission = 0
 
@@ -83,8 +95,16 @@ def game_loop(clients, game):
                     buf = network.message.recv_msg(client[SOCKET][0])
                     if buf and buf.decode():
                         buf = buf.decode()
-                        client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * client[TIME_SINCE_UPDATE]
-                        if client[EMA] > config.MOVEMENT_TIMEOUT * (1 - server_config.TIMEOUT_MARGIN):
+
+                        p = client[PLAYER]
+                        client[POSITIONS].append((p.x, p.y, pygame.time.get_ticks()))
+                        client[POSITIONS].pop(0)
+                        new_avg_speed = avg_speed(
+                            client[POSITIONS][0],
+                            client[POSITIONS][-1]
+                        )
+                        client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * new_avg_speed
+                        if client[EMA] > MAX_SPEED * (1 + server_config.SPEED_MARGIN):
                             client[ILLEGAL_MOVE] = not game.from_json(buf)
                         else:
                             client[ILLEGAL_MOVE] = True
@@ -133,7 +153,7 @@ game = game_state.GameState(id_name_pairs, maze)
 for player in game.players:
     for client in clients:
         if player.id == client['id']:
-            client['player'] = player
+            client[PLAYER] = player
             break
 
 print("Sending maze data...")
