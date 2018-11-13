@@ -53,10 +53,8 @@ class PlayerSprite(AnimatedSprite):
         AnimatedSprite.update(self)
         if self.player.local:
             if self.player.vel[0] < 0 and self.moving_right:
-                self.images = self.images_left
                 self.flip_direction()
             elif self.player.vel[0] > 0 and not self.moving_right:
-                self.images = self.images_right
                 self.flip_direction()
 
         self.x = self.player.px - root_x
@@ -67,11 +65,11 @@ class PlayerSprite(AnimatedSprite):
     def flip_direction(self):
         self.moving_right = not self.moving_right
         self.x_offset = -self.x_offset
-        self.next_image()
         if self.images is self.images_right:
             self.images = self.images_left
         else:
             self.images = self.images_right
+        self.next_image()
 
     def to_pixels(self, coords):
         return (
