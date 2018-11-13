@@ -34,4 +34,3 @@ class LocalPlayer(Player):
         Player.__init__(self, number, location, name)
         self.local = True
         self.illegal_move = False
-

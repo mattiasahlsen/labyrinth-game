@@ -64,10 +64,12 @@ class Renderer:
         self.screen.blit(sub_background, (0, 0))
         self.sprites.draw(self.screen)
 
-    def update_res(self, res):
-        return Renderer(self.screen, res, self.game)
+    def update_res(self, res, game):
+        return Renderer(self.screen, res, game)
 
     def finish(self):
+        self.screen.fill((1, 1, 1), None, pygame.BLEND_RGBA_SUB)
+
         winner_amount = len(self.game.winners)
         if winner_amount > 1:
             winner_text = "Draw! The winners are: "
@@ -79,8 +81,9 @@ class Renderer:
         else:
             winner_text = self.game.players[self.game.winners[0]].name + " wins!"
 
-        font = pygame.font.SysFont(None, int(self.block_size * 8))
-        textsurface = font.render(winner_text, False, ORANGE)
+        font = pygame.font.Font(DIR + '/res/fonts/Montserrat-Regular.ttf', int(self.block_size) * 4)
+        textsurface = font.render(winner_text, True, WIN_SCREEN_TEXT)
+        textsurface = pygame.transform.scale(textsurface, (self.res // 2, int(textsurface.get_height() * self.res / (2 * textsurface.get_width()))))
         text_rect = textsurface.get_rect()
 
         text_pos = self.res // 2 - text_rect.w // 2, self.res // 2 - text_rect.h // 2
