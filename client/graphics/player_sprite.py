@@ -9,21 +9,12 @@ import client_config
 
 # globals
 DIR = os.path.dirname(os.path.realpath(__file__))
-<<<<<<< HEAD
-=======
-SPRITE_UPDATE_INTERVAL = math.floor(client_config.FRAME_RATE / 8)
->>>>>>> b5579240c0ad18ec21a89f325dbab1b66aa022bf
 PLAYER_SPRITE_WIDTH = 16
 PLAYER_SPRITE_HEIGHT = 28
 
 class PlayerSprite(AnimatedSprite):
-<<<<<<< HEAD
-    def __init__(self, player, block_size, sprite):
-        get_image = lambda n: os.path.join(DIR, 'sprites/sprites/' + sprite + '_run_anim_f' + str(n) + '.png')
-=======
     def __init__(self, player, block_size, img):
         get_image = lambda n: os.path.join(DIR, 'sprites/sprites/' + img + '_run_anim_f' + str(n) + '.png')
->>>>>>> b5579240c0ad18ec21a89f325dbab1b66aa022bf
         images = []
         for i in range(4):
             images.append(get_image(i))
@@ -40,13 +31,8 @@ class PlayerSprite(AnimatedSprite):
         y_offset = 12 * scaling_factor * size_margin    # move 12 pixels up
 
         AnimatedSprite.__init__(self, images, (
-<<<<<<< HEAD
             player.px,
             player.py,
-=======
-            player.x * block_size,
-            player.y * block_size,
->>>>>>> b5579240c0ad18ec21a89f325dbab1b66aa022bf
             new_dimensions[0],
             new_dimensions[1]
         ), (x_offset, y_offset))
@@ -61,15 +47,10 @@ class PlayerSprite(AnimatedSprite):
         self.block_size = block_size
 
         self.moving_right = True
-<<<<<<< HEAD
-=======
-        self.radius = self.block_size / 2 # pixels to center
->>>>>>> b5579240c0ad18ec21a89f325dbab1b66aa022bf
         self.prio = 'x'
 
     def update(self):
         AnimatedSprite.update(self)
-<<<<<<< HEAD
         if self.player.local:
             if self.player.vel[0] < 0 and self.moving_right:
                 self.images = self.images_left
@@ -82,16 +63,6 @@ class PlayerSprite(AnimatedSprite):
         self.y = self.player.py
         self.rect[0] = math.floor(self.x - self.x_offset)
         self.rect[1] = math.floor(self.y - self.y_offset)
-=======
-
-        if self.player.vel[0] < 0 and self.moving_right:
-            self.flip_direction()
-        elif self.player.vel[0] > 0 and not self.moving_right:
-            self.flip_direction()
-
-        self.rect.x  = math.floor(self.x - self.x_offset)
-        self.rect.y =  math.floor(self.y - self.y_offset)
->>>>>>> b5579240c0ad18ec21a89f325dbab1b66aa022bf
 
     def flip_direction(self):
         self.moving_right = not self.moving_right
