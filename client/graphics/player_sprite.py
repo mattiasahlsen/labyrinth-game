@@ -49,7 +49,7 @@ class PlayerSprite(AnimatedSprite):
         self.moving_right = True
         self.prio = 'x'
 
-    def update(self):
+    def update(self, root_x, root_y):
         AnimatedSprite.update(self)
         if self.player.local:
             if self.player.vel[0] < 0 and self.moving_right:
@@ -59,8 +59,8 @@ class PlayerSprite(AnimatedSprite):
                 self.images = self.images_right
                 self.flip_direction()
 
-        self.x = self.player.px
-        self.y = self.player.py
+        self.x = self.player.px - root_x
+        self.y = self.player.py - root_y
         self.rect[0] = math.floor(self.x - self.x_offset)
         self.rect[1] = math.floor(self.y - self.y_offset)
 
