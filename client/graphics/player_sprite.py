@@ -51,11 +51,10 @@ class PlayerSprite(AnimatedSprite):
 
     def update(self, root_x, root_y):
         AnimatedSprite.update(self)
-        if self.player.local:
-            if self.player.vel[0] < 0 and self.moving_right:
-                self.flip_direction()
-            elif self.player.vel[0] > 0 and not self.moving_right:
-                self.flip_direction()
+        if self.player.vel[0] < 0 and self.moving_right:
+            self.flip_direction()
+        elif self.player.vel[0] > 0 and not self.moving_right:
+            self.flip_direction()
 
         self.x = self.player.px - root_x
         self.y = self.player.py - root_y

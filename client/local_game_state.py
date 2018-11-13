@@ -31,7 +31,6 @@ class LocalGameState(game_state.GameState):
             for j in range(maze.width):
                 if maze.maze[i * maze.width + j]:
                     self.walls.append(pygame.Rect(j * self.block_size, i * self.block_size, self.block_size, self.block_size))
-        self.prio = 'x'
 
     def tick(self):
         for p in self.players:
@@ -108,7 +107,7 @@ class LocalGameState(game_state.GameState):
                 if new_y - y > 0: vel_y = 1
                 elif new_y - y < 0: vel_y = -1
 
-                self.players[n].vel = (vel_x, vel_y)
+                self.players[n].vel = vel_x, vel_y
 
             self.players[n].x, self.players[n].y = new_x, new_y
 
