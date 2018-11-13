@@ -116,8 +116,7 @@ class LocalGameState(GameState):
             new_y = self.pixel_width - self.block_size
 
         def make_rect(x, y):
-            return pygame.Rect(x, y,
-                                self.block_size, self.block_size)
+            return pygame.Rect(x, y, self.block_size, self.block_size)
 
         bounding_rect = make_rect(new_x, new_y)
 
@@ -169,7 +168,13 @@ class LocalGameState(GameState):
             if n == self.local_player:
                 self.players[n].illegal_move = True
             else:
-                self.players[n].vel = (new_x - x, new_y - y)
+                vel_x, vel_y = 0, 0
+                if new_x - x > 0: vel_x = 1
+                elif new_x - x < 0: vel_x = -1
+                if new_y - y > 0: vel_y = 1
+                elif new_y - y < 0: vel_y = -1
+
+                self.players[n].vel = (vel_x, vel_y)
 
             self.players[n].x, self.players[n].y = new_x, new_y
 

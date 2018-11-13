@@ -46,14 +46,14 @@ class Renderer:
             sprite = PlayerSprite(player, self.block_size, 'elf_f')
             self.player_sprites.add(sprite)
             if player.local:
-                self.local_player = sprite
+                self.local_player = player
 
     def render_game(self):
         self.player_sprites.update()
         self.sprites.update()
 
-        x = min(max(0, math.floor(self.local_player.x - self.res / 2)), self.width * self.block_size - self.res)
-        y = min(max(0, math.floor(self.local_player.y - self.res / 2)), self.width * self.block_size - self.res)
+        x = min(max(0, math.floor(self.local_player.px - self.res / 2)), self.width * self.block_size - self.res)
+        y = min(max(0, math.floor(self.local_player.py - self.res / 2)), self.width * self.block_size - self.res)
         sub_background = self.background.subsurface(pygame.Rect(x, y, self.res, self.res))
 
         self.screen.blit(sub_background, (0, 0))
