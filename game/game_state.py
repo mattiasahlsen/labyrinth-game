@@ -79,20 +79,20 @@ class LocalGameState(GameState):
         self.block_size = block_size
         self.radius = block_size / 2
         self.pixel_width = block_size * maze.width
-        self.pixels_per_frame = block_size * FRAME_RATE / BLOCKS_PER_SEC
+        self.pixels_per_frame = block_size * BLOCKS_PER_SEC / FRAME_RATE
         self.walls = []
         for i in range(maze.width):
             for j in range(maze.width):
                 if maze.maze[i * maze.width + j]:
                     self.walls.append(pygame.Rect(j * self.block_size, i * self.block_size, self.block_size, self.block_size))
-        self.prio = 'x' 
-    
+        self.prio = 'x'
+
     def tick(self):
         for p in self.players:
             if p.local:
                 if p.illegal_move:
                     p.illegal_move = False
-                    (p.px, p.py) = self.to_pixels(self.player.x, self.player.y)
+                    (p.px, p.py) = self.to_pixels(p.x, p.y)
                 else:
                     self.handle_collision(p)
             else:
@@ -172,3 +172,9 @@ class LocalGameState(GameState):
                 self.players[n].vel = (new_x - x, new_y - y)
 
             self.players[n].x, self.players[n].y = new_x, new_y
+
+    def to_coords(self, pixels):
+        return (
+            math.floor(pixels[0] / self.block_size),
+            math.floor(pixels[1] / self.block_size)
+        )

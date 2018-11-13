@@ -78,9 +78,3 @@ class PlayerSprite(AnimatedSprite):
             math.floor(coords[0] * self.block_size),
             math.floor(coords[1] * self.block_size)
         )
-
-    def to_coords(self, pixels):
-        return (
-            math.floor(pixels[0] / self.block_size),
-            math.floor(pixels[1] / self.block_size)
-        )
