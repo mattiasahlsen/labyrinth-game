@@ -18,10 +18,11 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.image_amount = len(self.images)
 
         self.frames_since_image_update = 1 # when it's 0, update sprite
-        self.image = self.images[self.image_number]
 
         for i in range(len(self.images)):
             self.images[i] = pygame.transform.scale(self.images[i], self.size)
+
+        self.image = self.images[self.image_number]
 
         self.x_offset = offsets[0]
         self.y_offset = offsets[1]
