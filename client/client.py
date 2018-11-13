@@ -9,7 +9,8 @@ import json
 import pygame
 import network.message
 from graphics import renderer
-from game import game_state, maze
+from game import game_state
+from game import maze
 
 import client_config
 import config
@@ -49,8 +50,8 @@ my_number = data['player_number']
 id_name_pairs = data['players']
 
 # Game state object
-game = game_state.LocalGameState(id_name_pairs, maze, my_number)
-renderer = renderer.Renderer(screen, RES, game)
+game = game_state.LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
+renderer = renderer.Renderer(screen, RES, game, )
 
 velocity = (0, 0)
 game_pos = game.players[my_number].current_pos()
@@ -117,6 +118,6 @@ while 1:
             sys.exit()
         elif event.type == pygame.VIDEORESIZE:
             RES = min(event.w, event.h)
-            renderer = renderer.update_res(RES)
+            game = game_state.LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
 
     pygame.display.flip()

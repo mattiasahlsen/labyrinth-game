@@ -47,7 +47,7 @@ class Renderer:
 
         self.player_sprites = pygame.sprite.Group()
         for player in game.players:
-            sprite = PlayerSprite(game, player, self.block_size, walls_rect, 'elf_f')
+            sprite = PlayerSprite(player, self.block_size, 'elf_f')
             self.player_sprites.add(sprite)
             if player.local:
                 self.local_player = sprite

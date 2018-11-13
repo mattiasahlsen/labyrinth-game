@@ -1,6 +1,17 @@
+import sys
 import json
 import math
+import pygame
 from . import player
+import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
+#from client import client_config
+FRAME_RATE = 60
+BLOCKS_PER_SEC = 20
+
+FRAMES_PER_TICK = FRAME_RATE / BLOCKS_PER_SEC
 
 class GameState:
     def __init__(self, id_name_pairs, maze):
@@ -52,10 +63,93 @@ class GameState:
         return False
 
 class LocalGameState(GameState):
-    def __init__(self, players, maze, local_id):
+    def __init__(self, players, maze, local_id, block_size):
         GameState.__init__(self, players, maze)
         self.local_player = local_id
-        self.players[local_id] = player.LocalPlayer(local_id, maze.starting_locations[local_id], self.players[local_id].name)
+        
+        for id_, name in players:
+            if id_ == local_id:
+                self.players[id_] = player.LocalPlayer(id_, maze.starting_locations[id_], name)
+            else:
+                self.players[id_] = player.Player(id_, maze.starting_locations[id_], name)
+
+        self.block_size = block_size
+        self.radius = block_size / 2
+        self.pixel_width = block_size * maze.width
+        self.pixels_per_frame = block_size * FRAME_RATE / BLOCKS_PER_SEC
+        self.walls = []
+        for i in range(maze.width):
+            for j in range(maze.width):
+                if maze.maze[i * maze.width + j]:
+                    self.walls.append(pygame.Rect(j * self.block_size, i * self.block_size, self.block_size, self.block_size))
+        self.prio = 'x' 
+    
+    def tick(self):
+        for p in self.players:
+            if p.local:
+                if p.illegal_move:
+                    p.illegal_move = False
+                    (p.px, p.py) = self.to_pixels(self.player.x, self.player.y)
+                else:
+                    self.handle_collision(p)
+            else:
+                (realX, realY) = self.to_pixels(self.player.x, self.player.y)
+                p.px = p.px + (realX - p.px) / FRAMES_PER_TICK
+                p.py = p.py + (realY - p.py) / FRAMES_PER_TICK
+
+    def handle_collision(self, p):
+        # New x, y
+        new_x = p.px + self.pixels_per_frame * p.vel[0]
+        new_y = p.py + self.pixels_per_frame * p.vel[1]
+
+        # Check if new x,y is within the map
+        if new_x < 0:
+            new_x = 0
+        elif new_x >= self.pixel_width - self.block_size:
+            new_x = self.pixel_width - self.block_size
+        if new_y < 0:
+            new_y = 0
+        elif new_y  > self.pixel_width - self.block_size:
+            new_y = self.pixel_width - self.block_size
+
+        def make_rect(x, y):
+            return pygame.Rect(x, y,
+                                self.block_size, self.block_size)
+
+        bounding_rect = make_rect(new_x, new_y)
+
+        wall = bounding_rect.collidelist(self.walls)
+        if not wall == -1:
+            if make_rect(p.px, new_y).collidelist(self.walls) == -1:
+                new_x = self.round_pixel(p.px + self.radius)
+            elif make_rect(new_x, p.py).collidelist(self.walls) == -1:
+                new_y = self.round_pixel(p.py + self.radius)
+            else:
+                new_x, new_y = p.px, p.py
+
+        p.px, p.py = new_x, new_y
+
+        new_pos = self.to_coords((p.px + self.radius, p.py + self.radius))
+        if new_pos[0] != p.x and new_pos[1] != p.y:
+            # can't move in both x and y direction at the same time
+            if self.prio == 'x':
+                p.x = new_pos[0]
+                self.prio = 'y'
+            else:
+                p.y = new_pos[1]
+                self.prio = 'x'
+
+        elif new_pos != (p.x, p.y):
+            p.x, p.y = new_pos
+
+    def to_pixels(self, x, y):
+        return (
+            math.floor(x * self.block_size),
+            math.floor(y * self.block_size)
+        )
+
+    def round_pixel(self, pixel):
+        return math.floor(pixel / self.block_size) * self.block_size
 
     def to_json(self):
         return json.dumps(self.players[self.local_player].serializable())
