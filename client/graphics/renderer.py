@@ -23,13 +23,14 @@ class Renderer:
 
         self.block_size = math.floor(self.res / VIEW_DISTANCE)
 
-        self.sprites = pygame.sprite.RenderPlain()
+        self.walls = pygame.sprite.RenderPlain()
+        self.sprites = pygame.sprite.Group()
         for y in range(self.width):
             for x in range(self.width):
                 if self.maze.maze[y * self.width + x]:
                     wall_rect = pygame.Rect(x * self.block_size, y * self.block_size,
                                             self.block_size, self.block_size)
-                    self.sprites.add(Wall(wall_rect))
+                    self.walls.add(Wall(wall_rect))
 
         # goal sprite
         (goal_x, goal_y) = self.to_pixels(self.maze.goal[0], self.maze.goal[1])
@@ -39,25 +40,24 @@ class Renderer:
         self.background = pygame.Surface((self.width * self.block_size,
                                           self.width * self.block_size))
         self.background.fill(BLACK)
-        self.sprites.draw(self.background)
+        self.walls.draw(self.background)
 
-        self.player_sprites = pygame.sprite.Group()
         for player in game.players:
             sprite = PlayerSprite(player, self.block_size, 'elf_f')
-            self.player_sprites.add(sprite)
+            self.sprites.add(sprite)
             if player.local:
                 self.local_player = player
 
     def render_game(self):
-        self.sprites.update()
+        self.walls.update()
 
         x = round(min(max(0, math.floor(self.local_player.px - self.res / 2)), self.width * self.block_size - self.res))
         y = round(min(max(0, math.floor(self.local_player.py - self.res / 2)), self.width * self.block_size - self.res))
         sub_background = self.background.subsurface(pygame.Rect(x, y, self.res, self.res))
-        self.player_sprites.update(x, y)
+        self.sprites.update(x, y)
 
         self.screen.blit(sub_background, (0, 0))
-        self.player_sprites.draw(self.screen)
+        self.sprites.draw(self.screen)
 
     def update_res(self, res):
         return Renderer(self.screen, res, self.game)
