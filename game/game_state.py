@@ -66,12 +66,15 @@ class LocalGameState(GameState):
     def __init__(self, players, maze, local_id, block_size):
         GameState.__init__(self, players, maze)
         self.local_player = local_id
-        
+
         for id_, name in players:
             if id_ == local_id:
                 self.players[id_] = player.LocalPlayer(id_, maze.starting_locations[id_], name)
             else:
                 self.players[id_] = player.Player(id_, maze.starting_locations[id_], name)
+
+            self.players[id_].px = maze.starting_locations[id_][0] * block_size
+            self.players[id_].py = maze.starting_locations[id_][1] * block_size
 
         self.block_size = block_size
         self.radius = block_size / 2
