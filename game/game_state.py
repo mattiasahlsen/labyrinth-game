@@ -160,7 +160,12 @@ class LocalGameState(GameState):
 
         for player in data['players']:
             n = player['id']
+            x, y = self.players[n].x, self.players[n].y
+            new_x, new_y = player['x'], player['y']
+
             if n == self.local_player:
                 self.players[n].illegal_move = True
-            self.players[n].x = player['x']
-            self.players[n].y = player['y']
+            else:
+                self.players[n].vel = (new_x - x, new_y - y)
+
+            self.players[n].x, self.players[n].y = new_x, new_y
