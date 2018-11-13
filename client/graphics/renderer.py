@@ -2,7 +2,8 @@ import math
 import pygame
 from os import path
 from graphics.colors import *
-from .sprite import Sprite
+from .player_sprite import PlayerSprite
+from .coin_sprite import CoinSprite
 from .wall import Wall
 
 from config import GAME_WIDTH
@@ -36,12 +37,8 @@ class Renderer:
 
         # goal sprite
         (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
-        self.goal = pygame.sprite.Sprite()
-        self.goal.image = pygame.image.load(path.join(DIR, 'sprites/sprites/coin_anim_f0.png'))
-        self.goal.image = pygame.transform.scale(self.goal.image, (self.block_size, self.block_size))
-
-        self.goal.rect = pygame.Rect(goal_x, goal_y, self.block_size, self.block_size)
-        self.sprites.add(self.goal)
+        goal = CoinSprite((goal_x, goal_y, self.block_size, self.block_size))
+        self.sprites.add(goal)
 
         self.background = pygame.Surface((self.width * self.block_size,
                                           self.width * self.block_size))
@@ -50,13 +47,14 @@ class Renderer:
 
         self.player_sprites = pygame.sprite.Group()
         for player in game.players:
-            sprite = Sprite(game, player, self.block_size, walls_rect)
+            sprite = PlayerSprite(game, player, self.block_size, walls_rect, 'elf_f')
             self.player_sprites.add(sprite)
             if player.local:
                 self.local_player = sprite
 
     def render_game(self):
         self.player_sprites.update()
+        self.sprites.update()
 
         x = min(max(0, math.floor(self.local_player.x - self.res / 2)), self.width * self.block_size - self.res)
         y = min(max(0, math.floor(self.local_player.y - self.res / 2)), self.width * self.block_size - self.res)

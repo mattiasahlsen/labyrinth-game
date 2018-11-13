@@ -1,6 +1,6 @@
 .PONY: client server
 
-run-client:
+run:
 	python client/client.py
 
 run-server:
