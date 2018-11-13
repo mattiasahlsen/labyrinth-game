@@ -104,7 +104,6 @@ def game_loop(clients, game):
                             client[POSITIONS][-1]
                         )
                         client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * new_avg_speed
-                        print(client[EMA])
                         if client[EMA] < MAX_SPEED * (1 + server_config.SPEED_MARGIN):
                             client[ILLEGAL_MOVE] = not game.from_json(buf)
                         else:
