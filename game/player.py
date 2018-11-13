@@ -1,14 +1,22 @@
 import os.path
+import math
 import pygame
+
+import client_config
+import config
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, player_number, location, name):
-        self.id = player_number
+    def __init__(self, number, location, name):
+        self.id = number
         self.x = location[0]
         self.y = location[1]
+        self.px = location[0]
+        self.vel = (0, 0)
+
         self.local = False
         self.name = name
+
 
     def move(self):
         self.x += self.vel[0]
@@ -27,9 +35,9 @@ class Player(pygame.sprite.Sprite):
     def serializable(self):
         return dict([('id', self.id), ('x', self.x), ('y', self.y)])
 
+
 class LocalPlayer(Player):
     def __init__(self, number, location, name):
         Player.__init__(self, number, location, name)
-        self.vel = (0, 0)
         self.local = True
         self.illegal_move = False

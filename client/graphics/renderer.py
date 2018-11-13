@@ -24,19 +24,15 @@ class Renderer:
         self.block_size = math.floor(self.res / VIEW_DISTANCE)
 
         self.sprites = pygame.sprite.RenderPlain()
-        walls_rect = []
         for y in range(self.width):
             for x in range(self.width):
                 if self.maze.maze[y * self.width + x]:
-                    self.sprites.add(
-                        Wall((x * self.block_size, y * self.block_size), self.block_size)
-                    )
-                    walls_rect.append(
-                         pygame.Rect(x * self.block_size, y * self.block_size, self.block_size, self.block_size)
-                    )
+                    wall_rect = pygame.Rect(x * self.block_size, y * self.block_size,
+                                            self.block_size, self.block_size)
+                    self.sprites.add(Wall(wall_rect))
 
         # goal sprite
-        (goal_x, goal_y) = self.to_pixels((self.maze.goal[0], self.maze.goal[1]))
+        (goal_x, goal_y) = self.to_pixels(self.maze.goal[0], self.maze.goal[1])
         goal = CoinSprite((goal_x, goal_y, self.block_size, self.block_size))
         self.sprites.add(goal)
 
@@ -47,7 +43,7 @@ class Renderer:
 
         self.player_sprites = pygame.sprite.Group()
         for player in game.players:
-            sprite = PlayerSprite(game, player, self.block_size, walls_rect, 'elf_f')
+            sprite = PlayerSprite(player, self.block_size, 'elf_f')
             self.player_sprites.add(sprite)
             if player.local:
                 self.local_player = sprite
@@ -86,13 +82,8 @@ class Renderer:
 
         self.screen.blit(textsurface, text_pos)
 
-    def to_pixels(self, coords):
+    def to_pixels(self, x, y):
         return (
-            math.floor(coords[0] * self.block_size),
-            math.floor(coords[1] * self.block_size)
-        )
-    def to_coords(self, pixels):
-        return (
-            math.floor(pixels[0] * self.block_size),
-            math.floor(pixels[1] * self.block_size)
+            math.floor(x * self.block_size),
+            math.floor(y * self.block_size)
         )
