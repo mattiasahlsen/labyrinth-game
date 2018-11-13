@@ -20,12 +20,10 @@ class GameState:
     def set_vel(self, player_number, direction):
         self.players[player_number].vel = direction
 
-    def legal_move(self, old_pos, next_pos):
+    def legal_move(self, next_pos):
         x = next_pos[0]
         y = next_pos[1]
         if not (isinstance(x, int) and isinstance(y, int)):
-            return False
-        if abs(x - old_pos[0]) + abs(y - old_pos[1]) > 1:
             return False
         # Out of bounds
         if x < 0 or x >= self.maze.width or y < 0 or y >= self.maze.width:
@@ -48,7 +46,7 @@ class GameState:
         new_pos = (data['x'], data['y'])
         p = self.players[data['id']]
 
-        if self.legal_move(p.current_pos(), new_pos):
+        if self.legal_move(new_pos):
             p.move_to(new_pos)
             (gx, gy), (x, y) = self.maze.goal, new_pos
             dx, dy = gx - x, gy - y

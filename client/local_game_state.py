@@ -76,19 +76,7 @@ class LocalGameState(game_state.GameState):
                 new_x, new_y = p.px, p.py
 
         p.px, p.py = new_x, new_y
-
-        new_pos = self.to_coords((p.px + self.radius, p.py + self.radius))
-        if new_pos[0] != p.x and new_pos[1] != p.y:
-            # can't move in both x and y direction at the same time
-            if self.prio == 'x':
-                p.x = new_pos[0]
-                self.prio = 'y'
-            else:
-                p.y = new_pos[1]
-                self.prio = 'x'
-
-        elif new_pos != (p.x, p.y):
-            p.x, p.y = new_pos
+        p.x, p.y = self.to_coords(p.px + self.radius, p.py + self.radius)
 
     def to_pixels(self, x, y):
         return (
@@ -124,8 +112,8 @@ class LocalGameState(game_state.GameState):
 
             self.players[n].x, self.players[n].y = new_x, new_y
 
-    def to_coords(self, pixels):
+    def to_coords(self, x, y):
         return (
-            math.floor(pixels[0] / self.block_size),
-            math.floor(pixels[1] / self.block_size)
+            math.floor(x / self.block_size),
+            math.floor(y / self.block_size)
         )
