@@ -11,4 +11,4 @@ class CoinSprite(AnimatedSprite):
             images.append(get_image(i))
 
         AnimatedSprite.__init__(self, images, rect, (0, 0))
-        
+

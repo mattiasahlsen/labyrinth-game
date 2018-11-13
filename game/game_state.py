@@ -96,9 +96,9 @@ class LocalGameState(GameState):
                 else:
                     self.handle_collision(p)
             else:
-                (realX, realY) = self.to_pixels(self.player.x, self.player.y)
-                p.px = p.px + (realX - p.px) / FRAMES_PER_TICK
-                p.py = p.py + (realY - p.py) / FRAMES_PER_TICK
+                (real_x, real_y) = self.to_pixels(p.x, p.y)
+                p.px = p.px + (real_x - p.px) / FRAMES_PER_TICK
+                p.py = p.py + (real_y - p.py) / FRAMES_PER_TICK
 
     def handle_collision(self, p):
         # New x, y
