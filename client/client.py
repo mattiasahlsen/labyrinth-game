@@ -69,6 +69,8 @@ while 1:
             msg = msg.decode()
             if msg:
                 game.from_json(msg)
+    except ConnectionResetError:
+        pass
     except BlockingIOError:
         pass
 
@@ -107,6 +109,11 @@ while 1:
             velocity = (velocity[0], math.sqrt(0.5))
         else:
             velocity =  (0, 1)
+    elif keys[pygame.K_h] and keys[pygame.K_a] and keys[pygame.K_x]:
+        # Activate hax
+        game.players[game.local_player].x = maze.goal[0]
+        game.players[game.local_player].y = maze.goal[1]
+        network.message.send_msg(client_socket, str.encode(game.to_json()))
 
     game.set_vel(my_number, velocity)
 
@@ -121,5 +128,6 @@ while 1:
         elif event.type == pygame.VIDEORESIZE:
             RES = min(event.w, event.h)
             game = LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
+            renderer = renderer.update_res(RES / client_config.VIEW_DISTANCE, game)
 
     pygame.display.flip()
