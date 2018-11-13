@@ -78,7 +78,7 @@ def game_loop(clients, game):
     for client in clients:
         client[TIME_SINCE_UPDATE] = 0
         client[ILLEGAL_MOVE] = False
-        client[EMA] = 0
+        client[EMA] = MAX_SPEED * (1 - server_config.SPEED_MARGIN)
         client[POSITIONS] = [(client[PLAYER].x, client[PLAYER].y, 0)] * server_config.COLLECTED_MOVES
 
     time_since_transmission = 0
@@ -104,7 +104,8 @@ def game_loop(clients, game):
                             client[POSITIONS][-1]
                         )
                         client[EMA] = EMA_WEIGHT * client[EMA] + (1 - EMA_WEIGHT) * new_avg_speed
-                        if client[EMA] > MAX_SPEED * (1 + server_config.SPEED_MARGIN):
+                        print(client[EMA])
+                        if client[EMA] < MAX_SPEED * (1 + server_config.SPEED_MARGIN):
                             client[ILLEGAL_MOVE] = not game.from_json(buf)
                         else:
                             client[ILLEGAL_MOVE] = True

@@ -9,7 +9,7 @@ class CoinSprite(AnimatedSprite):
         images = []
         for i in range(4):
             images.append(get_image(i))
-        
+
         AnimatedSprite.__init__(self, images, rect, (0, 0))
         self.x = rect[0]
         self.y = rect[1]
@@ -19,4 +19,4 @@ class CoinSprite(AnimatedSprite):
 
         self.rect[0] = self.x - root_x
         self.rect[1] = self.y - root_y
-        
+
