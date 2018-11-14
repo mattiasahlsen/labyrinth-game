@@ -61,7 +61,7 @@ client_socket.setblocking(False)
 # Game loop
 while 1:
     clock.tick(client_config.FRAME_RATE)
-    game.tick()
+    game.tick(clock.get_fps())
     # Read data from the server
     try:
         msg = network.message.recv_msg(client_socket)

@@ -4,9 +4,8 @@ import pygame
 from game import game_state, player
 import client_config
 
-from client_config import FRAME_RATE, BLOCKS_PER_SEC
+from client_config import BLOCKS_PER_SEC
 
-FRAMES_PER_TICK = FRAME_RATE / BLOCKS_PER_SEC
 
 class LocalGameState(game_state.GameState):
     def __init__(self, players, maze, local_id, block_size):
@@ -25,7 +24,6 @@ class LocalGameState(game_state.GameState):
         self.block_size = block_size
         self.radius = block_size / 2
         self.pixel_width = block_size * maze.width
-        self.pixels_per_frame = block_size * BLOCKS_PER_SEC / FRAME_RATE # float
 
         self.walls = []
         for i in range(maze.width):
@@ -33,24 +31,27 @@ class LocalGameState(game_state.GameState):
                 if maze.maze[i * maze.width + j]:
                     self.walls.append(pygame.Rect(j * self.block_size, i * self.block_size, self.block_size, self.block_size))
 
-    def tick(self):
+    def tick(self, fps):
+        if fps == 0:
+            fps = 1 # no division by 0
+
+        pixels_per_frame = self.block_size * BLOCKS_PER_SEC / fps
+        frames_per_tick = fps / BLOCKS_PER_SEC
         for p in self.players:
             if p.local:
                 if p.illegal_move:
                     p.illegal_move = False
                     (p.px, p.py) = self.to_pixels(p.x, p.y)
                 else:
-                    self.handle_collision(p)
+                    new_px = p.px + pixels_per_frame * p.vel[0]
+                    new_py = p.py + pixels_per_frame * p.vel[1]
+                    self.handle_collision(p, new_px, new_py)
             else:
                 (real_x, real_y) = self.to_pixels(p.x, p.y)
-                p.px = p.px + (real_x - p.px) / FRAMES_PER_TICK
-                p.py = p.py + (real_y - p.py) / FRAMES_PER_TICK
+                p.px = p.px + (real_x - p.px) / frames_per_tick
+                p.py = p.py + (real_y - p.py) / frames_per_tick
 
-    def handle_collision(self, p):
-        # New x, y
-        new_px = p.px + self.pixels_per_frame * p.vel[0]
-        new_py = p.py + self.pixels_per_frame * p.vel[1]
-
+    def handle_collision(self, p, new_px, new_py):
         # Check if new x,y is within the map
         if new_px < 0:
             new_px = 0
