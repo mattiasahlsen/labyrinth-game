@@ -83,7 +83,10 @@ class Renderer:
 
         font = pygame.font.Font(DIR + '/res/fonts/Montserrat-Regular.ttf', int(self.block_size) * 4)
         textsurface = font.render(winner_text, True, WIN_SCREEN_TEXT)
-        textsurface = pygame.transform.scale(textsurface, (self.res // 2, int(textsurface.get_height() * self.res / (2 * textsurface.get_width())))) 
+        textsurface = pygame.transform.scale(textsurface, (self.res // 2, int(textsurface.get_height() * self.res / (2 * textsurface.get_width()))))
+
+        font = pygame.font.Font(DIR + '/res/fonts/Montserrat-Regular.ttf', int(textsurface.get_height() * self.res / (2 * textsurface.get_width())))
+        textsurface = font.render(winner_text, True, WIN_SCREEN_TEXT)
         text_rect = textsurface.get_rect()
 
         text_pos = self.res // 2 - text_rect.w // 2, self.res // 2 - text_rect.h // 2
