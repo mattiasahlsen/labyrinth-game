@@ -22,7 +22,7 @@ def connect(ip, port):
     return client_socket
 
 # Game constants
-DISPLAY_PARAMS = pygame.RESIZABLE
+DISPLAY_PARAMS = 0
 PLAYER_NAME = input('Nickname: ')
 
 # Network constants
@@ -125,9 +125,5 @@ while 1:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        elif event.type == pygame.VIDEORESIZE:
-            RES = min(event.w, event.h)
-            game = LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
-            renderer = renderer.update_res(RES / client_config.VIEW_DISTANCE, game)
 
     pygame.display.flip()
