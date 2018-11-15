@@ -11,7 +11,7 @@ from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC, VIEW_DISTANCE
 
 DIR = path.dirname(path.realpath(__file__))
-AVATARS = ['elf_m', 'elf_f', 'knight_m', 'knight_f', 'wizzart_m', 'wizzart_f']
+AVATARS = ['elf_m', 'elf_f', 'knight_m', 'knight_f', 'wizzard_m', 'wizzard_f']
 def random_avatar():
     return AVATARS[randint(0, len(AVATARS) - 1)]
 
