@@ -6,6 +6,7 @@ from graphics.colors import *
 from .player_sprite import PlayerSprite
 from .coin_sprite import CoinSprite
 from .wall import Wall
+from .floor_sprite import FloorSprite
 
 from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC, VIEW_DISTANCE
@@ -29,13 +30,16 @@ class Renderer:
         self.block_size = math.floor(self.res / VIEW_DISTANCE)
 
         self.walls = pygame.sprite.RenderPlain()
+        self.floors = pygame.sprite.RenderPlain()
         self.sprites = pygame.sprite.Group()
         for y in range(self.width):
             for x in range(self.width):
+                rect = pygame.Rect(x * self.block_size, y * self.block_size,
+                                    self.block_size, self.block_size)
                 if self.maze.maze[y * self.width + x]:
-                    wall_rect = pygame.Rect(x * self.block_size, y * self.block_size,
-                                            self.block_size, self.block_size)
-                    self.walls.add(Wall(wall_rect))
+                    self.walls.add(Wall(rect))
+                else:
+                    self.floors.add(FloorSprite(rect))
 
         # goal sprite
         (goal_x, goal_y) = self.to_pixels(self.maze.goal[0], self.maze.goal[1])
@@ -45,6 +49,7 @@ class Renderer:
         self.background = pygame.Surface((self.width * self.block_size,
                                           self.width * self.block_size))
         self.background.fill(BLACK)
+        self.floors.draw(self.background)
         self.walls.draw(self.background)
 
         for player in game.players:
@@ -54,8 +59,6 @@ class Renderer:
                 self.local_player = player
 
     def render_game(self):
-        self.walls.update()
-
         x = round(min(max(0, math.floor(self.local_player.px - self.res / 2)), self.width * self.block_size - self.res))
         y = round(min(max(0, math.floor(self.local_player.py - self.res / 2)), self.width * self.block_size - self.res))
         sub_background = self.background.subsurface(pygame.Rect(x, y, self.res, self.res))
