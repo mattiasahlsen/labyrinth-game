@@ -65,7 +65,7 @@ class LocalGameState(game_state.GameState):
         def make_rect(x, y):
             return pygame.Rect(x, y, self.block_size, self.block_size)
 
-        bounding_rect = make_rect(round(new_px), (new_py))
+        bounding_rect = make_rect(round(new_px), round(new_py))
 
         wall = bounding_rect.collidelist(self.walls)
         if not wall == -1:
