@@ -91,6 +91,7 @@ class LocalGameState(game_state.GameState):
 
     def from_json(self, json_data):
         data = json.loads(json_data)
+        print('got data from server')
         self.winners = data['winners']
 
         for player in data['players']:

@@ -126,8 +126,10 @@ while 1:
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.VIDEORESIZE:
+            """
             RES = min(event.w, event.h)
             game = LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
             renderer = renderer.update_res(RES / client_config.VIEW_DISTANCE, game)
+            """
 
     pygame.display.flip()

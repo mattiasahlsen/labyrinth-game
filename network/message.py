@@ -1,4 +1,5 @@
 import struct
+import socket
 
 # Taken from
 # https://stackoverflow.com/a/17668009
@@ -18,8 +19,11 @@ def recv_msg(sock):
 def recvall(sock, n):
     data = b''
     while len(data) < n:
-        packet = sock.recv(n - len(data))
-        if not packet:
-            return None
-        data += packet
+        try:
+            packet = sock.recv(n - len(data))
+            if not packet:
+                return None
+            data += packet
+        except socket.timeout as e:
+            pass
     return data
