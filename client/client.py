@@ -70,8 +70,7 @@ while 1:
             if msg:
                 game.from_json(msg)
     except ConnectionResetError:
-        pass
-    except BlockingIOError:
+        # do something here later, maybe reconnect?
         pass
 
     # Render graphics

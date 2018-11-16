@@ -57,7 +57,7 @@ def wait_players():
             client[SOCKET] = new_socket
             client[SOCKET][0].setblocking(False)
             print("Got connection from: " + str(client[SOCKET][1]))
-        except:
+        except socket.timeout:
             continue
     print(len(clients))
     server_socket.close()
@@ -70,9 +70,9 @@ def wait_nicknames(clients):
             if not NAME in client:
                 msg = network.message.recv_msg(client[SOCKET][0])
                 msg = msg.decode()
-            if msg:
-                client[NAME] = msg
-                count += 1
+                if msg:
+                    client[NAME] = msg
+                    count += 1
 
 # used for weighting average
 # get avg speed in squares per second
@@ -121,8 +121,6 @@ def game_loop(clients, game):
                         client[TIME_SINCE_UPDATE] = 0
                 except ConnectionResetError:
                     client[SOCKET] = None
-                except (BlockingIOError, AttributeError):
-                    pass
 
         if time_since_transmission > config.MOVEMENT_TIMEOUT:
             time_since_transmission = 0

@@ -24,6 +24,6 @@ def recvall(sock, n):
             if not packet:
                 return None
             data += packet
-        except socket.timeout as e:
-            pass
+        except (socket.timeout, BlockingIOError):
+            return data
     return data
