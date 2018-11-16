@@ -13,6 +13,8 @@ import network.message
 import server_config
 import config
 
+import my_signals
+
 EMA_WEIGHT = server_config.EMA_WEIGHT
 MAX_SPEED = 1000 / config.MOVEMENT_TIMEOUT # squares per second
 
@@ -27,12 +29,14 @@ TIME_SINCE_UPDATE = 'time_since_update'
 ILLEGAL_MOVE = 'illegal_move'
 POSITIONS = 'positions'
 
+
 def wait_players():
     port = config.SERVER_PORT
 
     while True:
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.settimeout(1.0)
             server_socket.bind((server_config.HOST, config.SERVER_PORT))
             server_socket.listen(PLAYERS)
             break
@@ -46,11 +50,16 @@ def wait_players():
 
     clients = []
     while len(clients) < PLAYERS:
-        client = {}
-        clients.append(client)
-        client[SOCKET] = server_socket.accept()
-        client[SOCKET][0].setblocking(False)
-        print("Got connection from: " + str(client[SOCKET][1]))
+        try:
+            new_socket = server_socket.accept()
+            client = {}
+            clients.append(client)
+            client[SOCKET] = new_socket
+            client[SOCKET][0].setblocking(False)
+            print("Got connection from: " + str(client[SOCKET][1]))
+        except:
+            continue
+    print(len(clients))
     server_socket.close()
     return clients
 
@@ -132,7 +141,7 @@ def game_loop(clients, game):
 
     pygame.time.wait(3000)
     for client in clients:
-        client[0].close()
+        client[SOCKET][0].close()
 
 
 # Wait for all players to connect
