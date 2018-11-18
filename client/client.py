@@ -3,6 +3,7 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
+import time
 import math
 import socket
 import json
@@ -13,12 +14,15 @@ from graphics import renderer
 from local_game_state import LocalGameState
 from game import maze
 
+from game.player import LocalPlayer, Player
+
 import client_config
 import config
 
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((ip, port))
+    client_socket.settimeout(1)
     return client_socket
 
 # Game constants
@@ -34,8 +38,18 @@ client_socket = connect(SERVER_IP, config.SERVER_PORT)
 network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 
 # Wait for maze
-msg = network.message.recv_msg(client_socket)
+print('Waiting for maze')
+while True:
+    msg = network.message.recv_msg(client_socket)
+    if not msg:
+        # try again in a sec (literally)
+        print('Maze not received, trying again.')
+        continue
+    else:
+        break
+print('Received maze.')
 maze = maze.Maze(msg.decode())
+client_socket.setblocking(False)
 
 RES = client_config.RESOLUTION
 
@@ -44,18 +58,25 @@ pygame.init()
 screen = pygame.display.set_mode((RES, RES), DISPLAY_PARAMS)
 clock = pygame.time.Clock()
 
-# Wait for starting positions
+# Wait for player data
 msg = network.message.recv_msg(client_socket)
 data = json.loads(msg.decode())
-my_number = data['player_number']
-id_name_pairs = data['players']
+my_id = data['id']
+players = []
+for player in data['players']:
+    if player['id'] == my_id:
+        players.append(LocalPlayer((player['x'], player['y']),
+                                    player['name'], player['avatar']))
+    else:
+        players.append(Player((player['x'], player['y']),
+                                    player['name'], player['avatar']))
 
 # Game state object
-game = LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
-renderer = renderer.Renderer(screen, RES, game, )
+game = LocalGameState(maze, players, my_id, RES / client_config.VIEW_DISTANCE)
+renderer = renderer.Renderer(screen, RES, game)
 
 velocity = (0, 0)
-game_pos = game.players[my_number].current_pos()
+my_pos = game.players[my_id].current_pos()
 client_socket.setblocking(False)
 
 # Game loop
@@ -114,10 +135,10 @@ while 1:
         game.players[game.local_player].y = maze.goal[1]
         network.message.send_msg(client_socket, str.encode(game.to_json()))
 
-    game.set_vel(my_number, velocity)
+    game.set_vel(my_id, velocity)
 
-    if game_pos != game.players[my_number].current_pos():
-        game_pos = game.players[my_number].current_pos()
+    if my_pos != game.players[my_id].current_pos():
+        my_pos = game.players[my_id].current_pos()
         network.message.send_msg(client_socket, str.encode(game.to_json()))
 
     # Handle exit
@@ -127,7 +148,7 @@ while 1:
         elif event.type == pygame.VIDEORESIZE:
             """
                 RES = min(event.w, event.h)
-                game = LocalGameState(id_name_pairs, maze, my_number, RES / client_config.VIEW_DISTANCE)
+                game = LocalGameState(id_name_pairs, maze, my_id, RES / client_config.VIEW_DISTANCE)
                 renderer = renderer.update_res(RES / client_config.VIEW_DISTANCE, game)
             """
 

@@ -8,22 +8,16 @@ from client_config import BLOCKS_PER_SEC
 
 
 class LocalGameState(game_state.GameState):
-    def __init__(self, players, maze, local_id, block_size):
-        game_state.GameState.__init__(self, players, maze)
-        self.local_player = local_id
-
-        for id_, name in players:
-            if id_ == local_id:
-                self.players[id_] = player.LocalPlayer(id_, maze.starting_locations[id_], name)
-            else:
-                self.players[id_] = player.Player(id_, maze.starting_locations[id_], name)
-
-            self.players[id_].px = maze.starting_locations[id_][0] * block_size
-            self.players[id_].py = maze.starting_locations[id_][1] * block_size
-
+    def __init__(self, maze, players, local_id, block_size):
+        game_state.GameState.__init__(self, maze, players)
         self.block_size = block_size
         self.radius = block_size / 2
         self.pixel_width = block_size * maze.width
+
+        for player in players:
+            if player.id == local_id:
+                self.local_player = player
+            player.px, player.py = self.to_pixels(player.x, player.y)
 
         self.walls = []
         for i in range(maze.width):
@@ -37,7 +31,7 @@ class LocalGameState(game_state.GameState):
 
         pixels_per_frame = self.block_size * BLOCKS_PER_SEC / fps
         frames_per_tick = fps / BLOCKS_PER_SEC
-        for p in self.players:
+        for _, p in self.players.items():
             if p.local:
                 if p.illegal_move:
                     p.illegal_move = False
@@ -80,17 +74,11 @@ class LocalGameState(game_state.GameState):
         p.px, p.py = new_px, new_py
         p.x, p.y = self.to_coords(p.px + self.radius, p.py + self.radius)
 
-    def to_pixels(self, x, y):
-        return (
-            math.floor(x * self.block_size),
-            math.floor(y * self.block_size)
-        )
-
     def round_pixel(self, pixel):
         return math.floor(pixel / self.block_size) * self.block_size
 
     def to_json(self):
-        return json.dumps(self.players[self.local_player].serializable())
+        return json.dumps(self.local_player.serializable())
 
     def from_json(self, json_data):
         data = json.loads(json_data)
@@ -101,7 +89,7 @@ class LocalGameState(game_state.GameState):
             x, y = self.players[n].x, self.players[n].y
             new_px, new_py = player['x'], player['y']
 
-            if n == self.local_player:
+            if n == self.local_player.id:
                 self.players[n].illegal_move = True
             else:
                 vel_x, vel_y = 0, 0
@@ -118,4 +106,10 @@ class LocalGameState(game_state.GameState):
         return (
             math.floor(x / self.block_size),
             math.floor(y / self.block_size)
+        )
+
+    def to_pixels(self, x, y):
+        return (
+            math.floor(x * self.block_size),
+            math.floor(y * self.block_size)
         )

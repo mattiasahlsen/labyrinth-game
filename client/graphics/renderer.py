@@ -1,7 +1,6 @@
 import math
 import pygame
 from os import path
-from random import randint
 from graphics.colors import *
 from .player_sprite import PlayerSprite
 from .coin_sprite import CoinSprite
@@ -12,9 +11,6 @@ from config import GAME_WIDTH
 from client_config import FRAME_RATE, BLOCKS_PER_SEC, VIEW_DISTANCE
 
 DIR = path.dirname(path.realpath(__file__))
-AVATARS = ['elf_m', 'elf_f', 'knight_m', 'knight_f', 'wizzard_m', 'wizzard_f']
-def random_avatar():
-    return AVATARS[randint(0, len(AVATARS) - 1)]
 
 
 class Renderer:
@@ -52,8 +48,8 @@ class Renderer:
         self.floors.draw(self.background)
         self.walls.draw(self.background)
 
-        for player in game.players:
-            sprite = PlayerSprite(player, self.block_size, random_avatar())
+        for _, player in game.players.items():
+            sprite = PlayerSprite(player, self.block_size, player.avatar)
             self.sprites.add(sprite)
             if player.local:
                 self.local_player = player

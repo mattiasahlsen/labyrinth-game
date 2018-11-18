@@ -9,13 +9,21 @@ sys.path.append(
 
 
 class GameState:
-    def __init__(self, id_name_pairs, maze):
+    def __init__(self, maze, players=None):
+        self.players = {}
+        if players:
+            for player in players:
+                self.players[player.id] = player
+
         self.maze = maze
-        self.player_amount = len(id_name_pairs)
-        self.players = []
         self.winners = []
-        for id_, name in id_name_pairs:
-            self.players.append(player.Player(id_, maze.starting_locations[id_], name))
+
+    def add_player(self, player):
+        self.players[player.id] = player
+
+    def add_players(self, players):
+        for player in players:
+            self.players[player.id] = player
 
     def set_vel(self, player_number, direction):
         self.players[player_number].vel = direction
@@ -38,7 +46,7 @@ class GameState:
 
     def to_json(self, exclude=-1):
         player_jsons = []
-        for player in self.players:
+        for _, player in self.players.items():
             if player.id == exclude:
                 continue
             player_jsons.append(player.serializable())

@@ -7,9 +7,12 @@ sys.path.append(
 import socket
 import json
 import pygame
-from game import maze, game_state
-import network.message
 
+from game.maze import random_maze
+from game.game_state import GameState
+from game.player import Player
+
+import network.message
 import server_config
 import config
 
@@ -30,7 +33,7 @@ ILLEGAL_MOVE = 'illegal_move'
 POSITIONS = 'positions'
 
 
-def wait_players():
+def wait_clients():
     port = config.SERVER_PORT
 
     while True:
@@ -40,8 +43,11 @@ def wait_players():
             server_socket.bind((server_config.HOST, config.SERVER_PORT))
             server_socket.listen(PLAYERS)
             break
+        except (socket.timeout, BlockingIOError):
+            print('Timed out trying to listen for connections, trying again.')
         except OSError as e:
-            if e.errno == 48: # address in use
+            print('OSError, ')
+            if e.errno == 48 or e.errno == 98: # address in use
                 port += 1 # try with next port
             else:
                 raise e
@@ -143,25 +149,25 @@ def game_loop(clients, game):
 
 
 # Wait for all players to connect
-clients = wait_players()
+clients = wait_clients()
 print(str(PLAYERS) + " players connected, waiting for nicknames...")
 
 wait_nicknames(clients)
 print('Received player names:')
 
-id_name_pairs = []
+maze = random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
+game = GameState(maze)
+
 for id_, client in enumerate(clients):
-    id_name_pairs.append((id_, client[NAME]))
-    client['id'] = id_
+    player = Player(maze.starting_locations[id_], client[NAME])
+    client['id'] = player.id
+    client[PLAYER] = player
+    game.add_player(player)
 
-maze = maze.random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
-game = game_state.GameState(id_name_pairs, maze)
+init_player_data = []
+for _, player in game.players.items():
+    init_player_data.append(player.serializable_init())
 
-for player in game.players:
-    for client in clients:
-        if player.id == client['id']:
-            client[PLAYER] = player
-            break
 
 print("Sending maze data...")
 # Send the maze to all clients
@@ -170,7 +176,7 @@ for client in clients:
 
 print("Assigning player numbers...")
 for client in clients:
-    msg = dict([('player_number', client['id']), ('players', id_name_pairs)])
+    msg = dict([('id', client['id']), ('players', init_player_data)])
     network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
 
 print("Starting game!")
