@@ -49,7 +49,6 @@ while True:
         break
 print('Received maze.')
 maze = maze.Maze(msg.decode())
-client_socket.setblocking(False)
 
 RES = client_config.RESOLUTION
 
@@ -59,7 +58,15 @@ screen = pygame.display.set_mode((RES, RES), DISPLAY_PARAMS)
 clock = pygame.time.Clock()
 
 # Wait for player data
-msg = network.message.recv_msg(client_socket)
+while True:
+    msg = network.message.recv_msg(client_socket)
+    if not msg:
+        print('Player data not received, trying again')
+        continue
+    else:
+        break
+client_socket.setblocking(False)
+
 data = json.loads(msg.decode())
 my_id = data['id']
 players = []
@@ -77,7 +84,6 @@ renderer = renderer.Renderer(screen, RES, game)
 
 velocity = (0, 0)
 my_pos = game.players[my_id].current_pos()
-client_socket.setblocking(False)
 
 # Game loop
 while 1:
