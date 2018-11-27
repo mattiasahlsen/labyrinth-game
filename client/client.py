@@ -3,6 +3,7 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
+import errno
 import time
 import math
 import socket
@@ -21,10 +22,18 @@ import config
 
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((ip, port))
-    client_socket.settimeout(1)
+    while True:
+        try:
+            try:
+                client_socket.connect((ip, port))
+                break;
+            except(ConnectionRefusedError):
+                print("Failed to connect")
+                client_socket.settimeout(1)
+                time.sleep(5.5)
+        except(ConnectionAbortedError):
+            pass
     return client_socket
-
 # Game constants
 DISPLAY_PARAMS = 0
 PLAYER_NAME = input('Nickname: ')
@@ -145,8 +154,12 @@ while 1:
 
     if my_pos != game.players[my_id].current_pos():
         my_pos = game.players[my_id].current_pos()
-        network.message.send_msg(client_socket, str.encode(game.to_json()))
-
+        try:
+            network.message.send_msg(client_socket, str.encode(game.to_json()))
+        except BrokenPipeError:
+            client_socket = connect(SERVER_IP, config.SERVER_PORT) #(behöver porten vara ny?) SERVER_IP = 0 igen? 
+          
+    
     # Handle exit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
