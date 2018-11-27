@@ -18,7 +18,7 @@ from game.player import LocalPlayer, Player
 
 import client_config
 import config
-
+import time
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while True:
