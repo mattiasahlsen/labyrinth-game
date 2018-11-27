@@ -18,17 +18,14 @@ import config
 
 import my_signals
 
-BACKUP_IP = ''
-BACKUP_PORT = 15001
-
+import time
 
 EMA_WEIGHT = server_config.EMA_WEIGHT
 MAX_SPEED = 1000 / config.MOVEMENT_TIMEOUT # squares per second
 
-PLAYERS = int(input('Number of players: '))            # amount of players
+
 
 # Client dict keys
-
 PLAYER = 'player'
 NAME = 'name'
 SOCKET = 'socket'
@@ -36,34 +33,14 @@ EMA = 'ema'
 TIME_SINCE_UPDATE = 'time_since_update'
 ILLEGAL_MOVE = 'illegal_move'
 POSITIONS = 'positions'
-
-def wait_backup_server():
-    port = config.SERVER_PORT-1
-
+msg=""
+def recive_infortmaion(server_socket):
     while True:
         try:
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(1.0)
-            server_socket.bind((server_config.HOST, port))
-            server_socket.listen(1)
-            break
-        except (socket.timeout, BlockingIOError):
-            print('Timed out trying to listen for connections, trying again.')
-        except OSError as e:
-            print('OSError, ')
-            if e.errno == 48 or e.errno == 98: # address in use
-                port += 1 # try with next port
-            else:
-                raise e
-
-    print("Server listening on port " + str(port))
-    while True:
-        try:
-            new_socket = server_socket.accept()
-            break
-        except socket.timeout:
-            continue
-    return new_socket[0]
+            msg = network.message.recv_msg(server_socket)
+        except ConnectionResetError:
+            # do something here later, maybe reconnect?
+            pass
 
 
 def wait_clients():
@@ -133,7 +110,6 @@ def game_loop(clients, game):
 
     while True:
         #sendBackup
-        network.message.send_msg(backup_server, str.encode(game.to_json()))
         
         clock.tick(server_config.TICK_RATE)
         time_since_transmission += clock.get_time()
@@ -183,39 +159,47 @@ def game_loop(clients, game):
     for client in clients:
         client[SOCKET][0].close()
 
+def connect(ip, port):
+    socket_to_connect = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print("hej")
+    while True:
+        try:
+            try:
+                socket_to_connect.connect((ip, port))
+                break;
+            except(ConnectionRefusedError):
+                print("failure")
+                socket_to_connect.settimeout(1)
+                time.sleep(5.5)
+        except(ConnectionAbortedError):
+            pass
+    return socket_to_connect
 
-#wait for backup server to connect
-backup_server = wait_backup_server()
+
+main_server_socket = connect(server_config.HOST, (config.SERVER_PORT-1))
+
+#PLAYERS = från server?-            # amount of players
+
 # Wait for all players to connect
-clients = wait_clients()
-print(str(PLAYERS) + " players connected, waiting for nicknames...")
+#clients = wait_clients()
+#print(str(PLAYERS) + " players connected, waiting for nicknames...")
 
-wait_nicknames(clients)
-print('Received player names:')
+#wait_nicknames(clients)
+#print('Received player names:')
 
-maze = random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
-game = GameState(maze)
+#maze = random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
+#game = GameState(maze)
 
-for id_, client in enumerate(clients):
-    player = Player(maze.starting_locations[id_], client[NAME])
-    client['id'] = player.id
-    client[PLAYER] = player
-    game.add_player(player)
+#for id_, client in enumerate(clients):
+#    player = Player(maze.starting_locations[id_], client[NAME])
+#    client['id'] = player.id
+#    client[PLAYER] = player
+#    game.add_player(player)
 
-init_player_data = []
-for _, player in game.players.items():
-    init_player_data.append(player.serializable_init())
-
-
-print("Sending maze data...")
-# Send the maze to all clients
-for client in clients:
-    network.message.send_msg(client[SOCKET][0], str.encode(maze.as_json()))
-
-print("Assigning player numbers...")
-for client in clients:
-    msg = dict([('id', client['id']), ('players', init_player_data)])
-    network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
+#init_player_data = []
+#for _, player in game.players.items():
+#    init_player_data.append(player.serializable_init())
 
 print("Starting game!")
-game_loop(clients, game)
+recive_infortmaion(main_server_socket)
+#game_loop(clients, game)
