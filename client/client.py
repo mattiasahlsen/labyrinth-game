@@ -21,8 +21,17 @@ import config
 
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((ip, port))
-    client_socket.settimeout(1)
+    while True:
+        try:
+            try:
+                client_socket.connect((ip, port))
+                break;
+            except(ConnectionRefusedError):
+                print("Failed to connect")
+                client_socket.settimeout(1)
+                time.sleep(5.5)
+        except(ConnectionAbortedError):
+            pass
     return client_socket
 
 # Game constants
