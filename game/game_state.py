@@ -14,7 +14,6 @@ class GameState:
         if players:
             for player in players:
                 self.players[player.id] = player
-
         self.maze = maze
         self.winners = []
 
@@ -51,7 +50,15 @@ class GameState:
                 continue
             player_jsons.append(player.serializable())
         return json.dumps(dict([('winners', self.winners), ('players', player_jsons)]))
-
+    
+    def to_json_name(self):
+        player_jsons = []
+        for _, player in self.players.items():
+            dict_of_player = player.serializable()
+            dict_of_player['name'] = player.name
+            player_jsons.append(dict_of_player)
+        return json.dumps(dict([('winners', self.winners), ('players', player_jsons)]))
+    
     def from_json(self, json_data):
         data = json.loads(json_data)
         new_pos = (data['x'], data['y'])
@@ -66,3 +73,11 @@ class GameState:
                     self.winners.append(data['id'])
             return True
         return False
+    def get_players(self):
+        return self.players
+    def set_players(self, players):
+        self.players = players
+    def get_player(self, mId):
+        return self.players[mId]
+
+    
