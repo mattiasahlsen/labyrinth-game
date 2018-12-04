@@ -10,10 +10,13 @@ def random_avatar():
     return AVATARS[randint(0, len(AVATARS) - 1)]
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, location, name, avatar=None):
-        global id_
-        self.id = id_
-        id_ += 1
+    def __init__(self, location, name, avatar=None, mId = None):
+        if mId:
+            self.id = mId
+        else:
+            global id_
+            self.id = id_
+            id_ += 1
 
         self.x = location[0]
         self.y = location[1]
