@@ -98,6 +98,7 @@ my_pos = game.players[my_id].current_pos()
 # Game loop
    
 while 1:
+    print("my_id"+str(my_id))
     clock.tick(client_config.FRAME_RATE)
     game.tick(clock.get_fps())
     # Read data from the server
@@ -122,7 +123,6 @@ while 1:
     # Keyboard input
     pygame.event.pump()
     keys = pygame.key.get_pressed()
-    print(str(keys))
 
     diag = False
     if ( (keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]) and
@@ -166,6 +166,7 @@ while 1:
             print("initiating backup")
             client_socket = connect(BACKUP_IP, BACKUP_PORT)
             network.message.send_msg(client_socket, str.encode(str(my_id)))
+            client_socket.setblocking(False)
     # Handle exit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

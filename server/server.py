@@ -95,7 +95,7 @@ def wait_clients(port):
             print("Got connection from: " + str(client[SOCKET][1]))
         except socket.timeout:
             continue
-    print(len(clients))
+    #print(len(clients))
     server_socket.close()
     return clients
 
@@ -223,15 +223,25 @@ def run_server(isBackupserver,game):
 
     if(isBackupserver):
         init_player_data = {}
+        #print(  len(clients))
+        counter = 0
         for client in clients:
+            print(counter)
+            counter = counter +1
             #Fill in client dict
-            print("vi kom 1")
-            buf = network.message.recv_msg(client[SOCKET][0])
-            client['id']      = int(buf.decode())
-            player = game.get_player(client['id'])
-            client[PLAYER] = player
-            client['name']    = player.name
-            init_player_data[str(client['id'])] = player.serializable_init()
+            #print("vi kom 1")
+            while True:
+                buf = network.message.recv_msg(client[SOCKET][0])
+                if(buf):
+                    client['id']      = int(buf.decode())
+                    #print(str(client['id']))
+                    player = game.get_player(client['id'])
+                    print("Player name:"+str(player.name))
+                    client[PLAYER] = player
+                    client['name']    = player.name
+                    break
+                else:
+                    pass
 
             
         #rcv id and add to each client
@@ -306,13 +316,11 @@ def recive_infortmaion(server_socket, game):
         except ConnectionResetError:
             pass
     for player in players:
-                        x = player['x']
-                        y = player['y']
                         mId = player['id']
                         print('id givet på servern'+ str(mId))
                         name = player['name']
-                        cords = (x,y)
-                        new_player = Player([x,y],name,None,mId)
+                        cords = (player['x'],player['y'])
+                        new_player = Player(cords,name,None,mId)
                         game.add_player(new_player)
     return game
 

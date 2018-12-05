@@ -78,6 +78,8 @@ class GameState:
     def set_players(self, players):
         self.players = players
     def get_player(self, mId):
-        return self.players[mId]
+        player = self.players[mId]
+        print(player.id)
+        return player
 
     
