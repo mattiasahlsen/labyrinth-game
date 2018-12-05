@@ -32,14 +32,16 @@ TIME_SINCE_UPDATE = 'time_since_update'
 ILLEGAL_MOVE = 'illegal_move'
 POSITIONS = 'positions'
 
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.settimeout(0.01)
 
 def wait_clients():
     port = config.SERVER_PORT
 
     while True:
         try:
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(1.0)
+            #server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+           # server_socket.settimeout(1.0)
             server_socket.bind((server_config.HOST, config.SERVER_PORT))
             server_socket.listen(PLAYERS)
             break
@@ -56,6 +58,7 @@ def wait_clients():
 
     clients = []
     while len(clients) < PLAYERS:
+        #print('wating clients')
         try:
             new_socket = server_socket.accept()
             client = {}
@@ -66,7 +69,7 @@ def wait_clients():
         except socket.timeout:
             continue
     print(len(clients))
-    server_socket.close()
+   # server_socket.close()
     return clients
 
 def wait_nicknames(clients):
@@ -102,6 +105,47 @@ def game_loop(clients, game):
         clock.tick(server_config.TICK_RATE)
         time_since_transmission += clock.get_time()
 
+#######################################
+
+            #################
+            ### RECONNECT ###     
+            #################       
+        
+        try:
+            
+            new_socket = server_socket.accept()
+            re_client = {}
+            re_client[SOCKET] = new_socket
+            re_client[SOCKET][0].setblocking(False)
+            print("Got connection from: " + str(re_client[SOCKET][1]))
+        
+            
+       
+            msg = network.message.recv_msg(re_client[SOCKET][0])
+            msg = msg.decode()
+           
+            name_check = 0
+            for id_, client in enumerate(clients):
+                if msg == client[NAME]:
+                    print("name found " + msg)
+                    client[SOCKET] = re_client[SOCKET]
+                    re_client[POSITIONS] = client[POSITIONS]
+                    network.message.send_msg(client[SOCKET][0], str.encode(maze.as_json()))
+
+                    msg = dict([('id', client['id']), ('players', init_player_data)])
+                    network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
+
+                    encoded_message = str.encode(game.to_json())
+                    network.message.send_msg(client[SOCKET][0], encoded_message)
+                else:
+                        name_check += 1
+            print('no matching name')        
+        except socket.timeout:
+            pass  
+  
+
+#############################################
+       
         # Read all sockets
         for client in clients:
             client[TIME_SINCE_UPDATE] += clock.get_time()
