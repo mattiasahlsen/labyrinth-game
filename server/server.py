@@ -34,13 +34,14 @@ TIME_SINCE_UPDATE = 'time_since_update'
 ILLEGAL_MOVE = 'illegal_move'
 POSITIONS = 'positions'
 
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.settimeout(1.0)
 def wait_backup_server():
     port = config.SERVER_PORT-1
 
     while True:
         try:
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(1.0)
+            
             server_socket.bind((server_config.HOST, port))
             server_socket.listen(1)
             break
@@ -63,13 +64,16 @@ def wait_backup_server():
             continue
     return new_socket[0]
 
+
+
+
 def wait_clients(port):
 
     while True:
         try:
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(1.0)
-            server_socket.bind((server_config.HOST, port))
+
+            server_socket.bind((server_config.HOST, config.SERVER_PORT))
+
             server_socket.listen(PLAYERS)
             break
         except (socket.timeout, BlockingIOError):
@@ -86,6 +90,7 @@ def wait_clients(port):
 
     clients = []
     while len(clients) < PLAYERS:
+        #print('wating clients')
         try:
             new_socket = server_socket.accept()
             client = {}
@@ -95,8 +100,7 @@ def wait_clients(port):
             print("Got connection from: " + str(client[SOCKET][1]))
         except socket.timeout:
             continue
-    #print(len(clients))
-    server_socket.close()
+
     return clients
 
 def wait_nicknames(clients):
@@ -130,9 +134,55 @@ def game_loop(clients, game, backup_server):
     while True:
         clock.tick(server_config.TICK_RATE)
         time_since_transmission += clock.get_time()
+
         
         if(backup_server):
             network.message.send_msg(backup_server, str.encode(game.to_json_name()))
+
+
+#######################################
+
+            #################
+            ### RECONNECT ###     
+            #################       
+        
+        try:
+            
+            new_socket = server_socket.accept()
+            re_client = {}
+            re_client[SOCKET] = new_socket
+            re_client[SOCKET][0].setblocking(False)
+            print("Got connection from: " + str(re_client[SOCKET][1]))
+        
+            
+       
+            msg = network.message.recv_msg(re_client[SOCKET][0])
+            msg = msg.decode()
+           
+            name_check = 0
+            for id_, client in enumerate(clients):
+                if msg == client[NAME] and client[SOCKET] == None:
+                    print("name found " + msg)
+                    client[SOCKET] = re_client[SOCKET]
+                    re_client[POSITIONS] = client[POSITIONS]
+                    network.message.send_msg(client[SOCKET][0], str.encode(maze.as_json()))
+
+                    msg = dict([('id', client['id']), ('players', init_player_data)])
+                    network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
+
+                    encoded_message = str.encode(game.to_json())
+                    network.message.send_msg(client[SOCKET][0], encoded_message)
+                else:
+                        name_check += 1
+            if PLAYERS == name_check:
+                network.message.send_msg(re_client[SOCKET][0], str.encode("no"))            
+            print('name not disconnected')        
+        except socket.timeout:
+            pass  
+  
+
+#############################################
+
         # Read all sockets
         for client in clients:
             client[TIME_SINCE_UPDATE] += clock.get_time()
@@ -156,6 +206,10 @@ def game_loop(clients, game, backup_server):
                             client[ILLEGAL_MOVE] = False#True
 
                         client[TIME_SINCE_UPDATE] = 0
+               
+                   
+                        
+
                 except ConnectionResetError:
                     client[SOCKET] = None
         
@@ -172,6 +226,8 @@ def game_loop(clients, game, backup_server):
                         encoded_message = str.encode(game.to_json(client['id']))
 
                     network.message.send_msg(client[SOCKET][0], encoded_message)
+               
+
                     client[ILLEGAL_MOVE] = False
 
             if game.winners:
@@ -276,6 +332,7 @@ def run_server(isBackupserver,game):
             network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
             #send maze to backup   
     game_loop(clients, game, backup_server)
+
 
 
 def connect(ip, port):

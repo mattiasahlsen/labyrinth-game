@@ -51,11 +51,15 @@ network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 print('Waiting for maze')
 while True:
     msg = network.message.recv_msg(client_socket)
+
     if not msg:
         # try again in a sec (literally)
         print('Maze not received, trying again.')
         continue
     else:
+        if str(msg.decode()) == "no":
+            print("not ok name")
+            sys.exit()
         break
 print('Received maze.')
 maze = maze.Maze(msg.decode())
