@@ -21,17 +21,8 @@ import config
 
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    while True:
-        try:
-            try:
-                client_socket.connect((ip, port))
-                break;
-            except(ConnectionRefusedError):
-                print("Failed to connect")
-                client_socket.settimeout(1)
-                time.sleep(5.5)
-        except(ConnectionAbortedError):
-            pass
+    client_socket.connect((ip, port))
+    client_socket.settimeout(1)
     return client_socket
 
 # Game constants
@@ -40,8 +31,7 @@ PLAYER_NAME = input('Nickname: ')
 
 # Network constants
 SERVER_IP = input('IP of server: ')
-BACKUP_IP = ''
-BACKUP_PORT = 25000
+
 # Connect to server
 client_socket = connect(SERVER_IP, config.SERVER_PORT)
 
@@ -100,9 +90,7 @@ velocity = (0, 0)
 my_pos = game.players[my_id].current_pos()
 
 # Game loop
-   
 while 1:
-    print("my_id"+str(my_id))
     clock.tick(client_config.FRAME_RATE)
     game.tick(clock.get_fps())
     # Read data from the server
@@ -112,8 +100,6 @@ while 1:
             msg = msg.decode()
             if msg:
                 game.from_json(msg)
-                
-                #print(game.players)
     except ConnectionResetError:
         # do something here later, maybe reconnect?
         pass
@@ -163,14 +149,8 @@ while 1:
 
     if my_pos != game.players[my_id].current_pos():
         my_pos = game.players[my_id].current_pos()
-        try:
-            network.message.send_msg(client_socket, str.encode(game.to_json()))
-        except BrokenPipeError:
-            print("Server ded")
-            print("initiating backup")
-            client_socket = connect(BACKUP_IP, BACKUP_PORT)
-            network.message.send_msg(client_socket, str.encode(str(my_id)))
-            client_socket.setblocking(False)
+        network.message.send_msg(client_socket, str.encode(game.to_json()))
+
     # Handle exit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
