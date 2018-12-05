@@ -32,10 +32,9 @@ class LocalGameState(game_state.GameState):
         pixels_per_frame = self.block_size * BLOCKS_PER_SEC / fps
         frames_per_tick = fps / BLOCKS_PER_SEC
         for mId, p in self.players.items():
-            if mId!=p.id:
-                print("Det är fel!!!!")
+           
             if p.local:
-                print("Local in tick:" +str(p.id))
+                
                 if p.illegal_move:
                     p.illegal_move = False
                     (p.px, p.py) = self.to_pixels(p.x, p.y)

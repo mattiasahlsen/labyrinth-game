@@ -19,6 +19,9 @@ from game.player import LocalPlayer, Player
 import client_config
 import config
 
+
+
+
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while True:
@@ -27,6 +30,8 @@ def connect(ip, port):
                 client_socket.connect((ip, port))
                 break;
             except(ConnectionRefusedError):
+                client_socket = connect(SERVER_IP, BACKUP_PORT)
+                break
                 print("Failed to connect")
                 client_socket.settimeout(1)
                 time.sleep(5.5)
@@ -42,8 +47,10 @@ PLAYER_NAME = input('Nickname: ')
 SERVER_IP = input('IP of server: ')
 BACKUP_IP = ''
 BACKUP_PORT = 25000
+MAIN_PORT = config.SERVER_PORT
+
 # Connect to server
-client_socket = connect(SERVER_IP, config.SERVER_PORT)
+client_socket = connect(SERVER_IP, MAIN_PORT)
 
 network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 
@@ -51,11 +58,15 @@ network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 print('Waiting for maze')
 while True:
     msg = network.message.recv_msg(client_socket)
+
     if not msg:
         # try again in a sec (literally)
         print('Maze not received, trying again.')
         continue
     else:
+        if str(msg.decode()) == "no":
+            print("not ok name")
+            sys.exit()
         break
 print('Received maze.')
 maze = maze.Maze(msg.decode())
@@ -98,7 +109,6 @@ my_pos = game.players[my_id].current_pos()
 # Game loop
    
 while 1:
-    print("my_id"+str(my_id))
     clock.tick(client_config.FRAME_RATE)
     game.tick(clock.get_fps())
     # Read data from the server
