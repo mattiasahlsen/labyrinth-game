@@ -126,7 +126,7 @@ def game_loop(clients, game):
            
             name_check = 0
             for id_, client in enumerate(clients):
-                if msg == client[NAME]:
+                if msg == client[NAME] and client[SOCKET] == None:
                     print("name found " + msg)
                     client[SOCKET] = re_client[SOCKET]
                     re_client[POSITIONS] = client[POSITIONS]
@@ -139,7 +139,9 @@ def game_loop(clients, game):
                     network.message.send_msg(client[SOCKET][0], encoded_message)
                 else:
                         name_check += 1
-            print('no matching name')        
+            if PLAYERS == name_check:
+                network.message.send_msg(re_client[SOCKET][0], str.encode("no"))            
+            print('name not disconnected')        
         except socket.timeout:
             pass  
   
@@ -169,6 +171,10 @@ def game_loop(clients, game):
                             client[ILLEGAL_MOVE] = True
 
                         client[TIME_SINCE_UPDATE] = 0
+               
+                   
+                        
+
                 except ConnectionResetError:
                     client[SOCKET] = None
 
@@ -182,6 +188,8 @@ def game_loop(clients, game):
                         encoded_message = str.encode(game.to_json(client['id']))
 
                     network.message.send_msg(client[SOCKET][0], encoded_message)
+               
+
                     client[ILLEGAL_MOVE] = False
 
             if game.winners:
@@ -205,6 +213,7 @@ game = GameState(maze)
 for id_, client in enumerate(clients):
     player = Player(maze.starting_locations[id_], client[NAME])
     client['id'] = player.id
+    client['dc'] = False
     client[PLAYER] = player
     game.add_player(player)
 
