@@ -80,7 +80,7 @@ def wait_clients(port):
             if e.errno == 48 or e.errno == 98: # address in use
                 port += 1 # try with next port
             else:
-                raise e
+                raise zxe
 
     print("Server listening on port " + str(port))
 
@@ -153,7 +153,7 @@ def game_loop(clients, game, backup_server):
                         if client[EMA] < MAX_SPEED * (1 + server_config.SPEED_MARGIN):
                             client[ILLEGAL_MOVE] = not game.from_json(buf)
                         else:
-                            client[ILLEGAL_MOVE] = True
+                            client[ILLEGAL_MOVE] = False#True
 
                         client[TIME_SINCE_UPDATE] = 0
                 except ConnectionResetError:
@@ -311,6 +311,7 @@ def recive_infortmaion(server_socket, game):
                         mId = player['id']
                         print('id givet på servern'+ str(mId))
                         name = player['name']
+                        cords = (x,y)
                         new_player = Player([x,y],name,None,mId)
                         game.add_player(new_player)
     return game

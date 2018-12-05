@@ -122,6 +122,7 @@ while 1:
     # Keyboard input
     pygame.event.pump()
     keys = pygame.key.get_pressed()
+    print(str(keys))
 
     diag = False
     if ( (keys[pygame.K_RIGHT] or keys[pygame.K_LEFT]) and

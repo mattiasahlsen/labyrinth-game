@@ -9,7 +9,6 @@ from client_config import BLOCKS_PER_SEC
 
 class LocalGameState(game_state.GameState):
     def __init__(self, maze, players, local_id, block_size):
-        print(str(local_id))
         game_state.GameState.__init__(self, maze, players)
         self.block_size = block_size
         self.radius = block_size / 2
@@ -84,8 +83,6 @@ class LocalGameState(game_state.GameState):
     def from_json(self, json_data):
         data = json.loads(json_data)
         self.winners = data['winners']
-        for player in data['players']:
-            print(str(player['id']))
         for player in data['players']:
             n = player['id']
             x, y = self.players[n].x, self.players[n].y
