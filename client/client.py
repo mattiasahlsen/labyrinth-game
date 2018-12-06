@@ -172,11 +172,12 @@ while 1:
         try:
             network.message.send_msg(client_socket, str.encode(game.to_json()))
         except BrokenPipeError:
-            print("Server ded")
-            print("initiating backup")
-            client_socket = connect(BACKUP_IP, BACKUP_PORT)
-            network.message.send_msg(client_socket, str.encode(str(my_id)))
-            client_socket.setblocking(False)
+            if game.winners == None:
+                print("Server ded")
+                print("initiating backup")
+                client_socket = connect(BACKUP_IP, BACKUP_PORT)
+                network.message.send_msg(client_socket, str.encode(str(my_id)))
+                client_socket.setblocking(False)
     # Handle exit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

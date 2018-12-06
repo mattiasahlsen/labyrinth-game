@@ -230,6 +230,7 @@ def game_loop(clients, game, backup_server, init_player_data):
                     client[ILLEGAL_MOVE] = False
 
             if game.winners:
+                network.message.send_msg(backup_server, str.encode(game.to_json_name()))
                 break
 
     pygame.time.wait(3000)
@@ -337,7 +338,6 @@ def run_server(isBackupserver,game):
 
 def connect(ip, port):
     socket_to_connect = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("hej")
     while True:
         try:
             try:
@@ -363,6 +363,8 @@ def recive_infortmaion(server_socket, game):
                 data = json.loads(msg)
                 if msg:
                     game.winners = data['winners']
+                    if game.winners:
+                        sys.exit()
                     players = data['players']
                     
                 else:
