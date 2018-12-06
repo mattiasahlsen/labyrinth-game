@@ -50,6 +50,7 @@ class Player(pygame.sprite.Sprite):
         return { **self.serializable(),
                  **dict([('name', self.name), ('avatar', self.avatar)]) }
 
+
 class LocalPlayer(Player):
     def __init__(self, location, name, avatar=None):
         Player.__init__(self, location, name, avatar)

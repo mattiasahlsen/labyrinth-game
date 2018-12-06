@@ -31,8 +31,10 @@ class LocalGameState(game_state.GameState):
 
         pixels_per_frame = self.block_size * BLOCKS_PER_SEC / fps
         frames_per_tick = fps / BLOCKS_PER_SEC
-        for _, p in self.players.items():
+        for mId, p in self.players.items():
+           
             if p.local:
+                
                 if p.illegal_move:
                     p.illegal_move = False
                     (p.px, p.py) = self.to_pixels(p.x, p.y)
@@ -83,7 +85,6 @@ class LocalGameState(game_state.GameState):
     def from_json(self, json_data):
         data = json.loads(json_data)
         self.winners = data['winners']
-
         for player in data['players']:
             n = player['id']
             x, y = self.players[n].x, self.players[n].y

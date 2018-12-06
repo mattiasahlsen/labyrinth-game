@@ -19,10 +19,24 @@ from game.player import LocalPlayer, Player
 import client_config
 import config
 
+
+
+
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((ip, port))
-    client_socket.settimeout(1)
+    while True:
+        try:
+            try:
+                client_socket.connect((ip, port))
+                break;
+            except(ConnectionRefusedError):
+                client_socket = connect(SERVER_IP, BACKUP_PORT)
+                break
+                print("Failed to connect")
+                client_socket.settimeout(1)
+                time.sleep(5.5)
+        except(ConnectionAbortedError):
+            pass
     return client_socket
 
 # Game constants
@@ -31,9 +45,12 @@ PLAYER_NAME = input('Nickname: ')
 
 # Network constants
 SERVER_IP = input('IP of server: ')
+BACKUP_IP = ''
+BACKUP_PORT = 25000
+MAIN_PORT = config.SERVER_PORT
 
 # Connect to server
-client_socket = connect(SERVER_IP, config.SERVER_PORT)
+client_socket = connect(SERVER_IP, MAIN_PORT)
 
 network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 
@@ -41,11 +58,15 @@ network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 print('Waiting for maze')
 while True:
     msg = network.message.recv_msg(client_socket)
+
     if not msg:
         # try again in a sec (literally)
         print('Maze not received, trying again.')
         continue
     else:
+        if str(msg.decode()) == "no":
+            print("not ok name")
+            sys.exit()
         break
 print('Received maze.')
 maze = maze.Maze(msg.decode())
@@ -86,6 +107,7 @@ velocity = (0, 0)
 my_pos = game.players[my_id].current_pos()
 
 # Game loop
+   
 while 1:
     clock.tick(client_config.FRAME_RATE)
     game.tick(clock.get_fps())
@@ -96,6 +118,8 @@ while 1:
             msg = msg.decode()
             if msg:
                 game.from_json(msg)
+                
+                #print(game.players)
     except ConnectionResetError:
         # do something here later, maybe reconnect?
         pass
@@ -145,8 +169,15 @@ while 1:
 
     if my_pos != game.players[my_id].current_pos():
         my_pos = game.players[my_id].current_pos()
-        network.message.send_msg(client_socket, str.encode(game.to_json()))
-
+        try:
+            network.message.send_msg(client_socket, str.encode(game.to_json()))
+        except BrokenPipeError:
+            if game.winners == None:
+                print("Server ded")
+                print("initiating backup")
+                client_socket = connect(BACKUP_IP, BACKUP_PORT)
+                network.message.send_msg(client_socket, str.encode(str(my_id)))
+                client_socket.setblocking(False)
     # Handle exit
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

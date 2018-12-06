@@ -8,4 +8,6 @@ run-server:
 client3:
 	python3 client/client.py
 server3:
-	python3 server/server.py
+	python3 server/server.py "server"
+backup3:
+	python3 server/server.py "backup"
