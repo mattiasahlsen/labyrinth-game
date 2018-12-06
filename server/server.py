@@ -166,10 +166,12 @@ def game_loop(clients, game, backup_server, init_player_data):
                     network.message.send_msg(client[SOCKET][0], str.encode(game.maze.as_json()))
 
                     msg = dict([('id', client['id']), ('players', init_player_data)])
+                   
                     network.message.send_msg(client[SOCKET][0], str.encode(json.dumps(msg)))
 
                     encoded_message = str.encode(game.to_json())
                     network.message.send_msg(client[SOCKET][0], encoded_message)
+
                 else:
                         name_check += 1
             if PLAYERS == name_check:
@@ -275,7 +277,9 @@ def run_server(isBackupserver,game):
         print(str(PLAYERS) + " players connected, waiting for nicknames...")
 
     if(isBackupserver):
-        init_player_data = {}
+        init_player_data = []
+        for _, player in game.players.items():
+            init_player_data.append(player.serializable_init())
         #print(  len(clients))
         counter = 0
         for client in clients:
