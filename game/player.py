@@ -7,7 +7,10 @@ from game.avatars import AVATARS
 id_ = 0
 
 def random_avatar():
-    return AVATARS[randint(0, len(AVATARS) - 1)]
+    if not id_ == 3:
+        return AVATARS[id_]
+    else:
+        return AVATARS[4]
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, location, name, avatar=None, mId = None):

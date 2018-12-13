@@ -376,7 +376,6 @@ def recive_infortmaion(server_socket, game):
             pass
     for player in players:
                         mId = player['id']
-                        print('id givet på servern'+ str(mId))
                         name = player['name']
                         cords = (player['x'],player['y'])
                         new_player = Player(cords,name,None,mId)
