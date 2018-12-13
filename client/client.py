@@ -172,7 +172,7 @@ while 1:
         try:
             network.message.send_msg(client_socket, str.encode(game.to_json()))
         except BrokenPipeError:
-            if game.winners == None:
+            if not game.winners:
                 print("Server ded")
                 print("initiating backup")
                 client_socket = connect(BACKUP_IP, BACKUP_PORT)
