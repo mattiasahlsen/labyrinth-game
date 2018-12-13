@@ -7,8 +7,12 @@ from game.avatars import AVATARS
 id_ = 0
 
 def random_avatar():
-    if not id_ == 3:
-        return AVATARS[id_]
+    if id_ == 1:
+        return AVATARS[0]
+    elif id_ == 2:
+        return AVATARS[1]
+    elif id_ == 3:
+        return AVATARS[2]
     else:
         return AVATARS[4]
 
