@@ -45,7 +45,7 @@ PLAYER_NAME = input('Nickname: ')
 
 # Network constants
 SERVER_IP = input('IP of server: ')
-BACKUP_IP = ''
+BACKUP_IP = input('IP of backup server')
 BACKUP_PORT = 25000
 MAIN_PORT = config.SERVER_PORT
 
