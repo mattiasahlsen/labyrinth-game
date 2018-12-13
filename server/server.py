@@ -398,7 +398,8 @@ def wait_for_maze(server_socket):
     return maze
         
 def backup_server():
-    main_server_socket = connect(server_config.HOST, (config.SERVER_PORT-1))
+    ip = input('Main server IP: ')
+    main_server_socket = connect(ip, (config.SERVER_PORT-1))
 
     maze = wait_for_maze(main_server_socket)
     game = GameState(maze)
