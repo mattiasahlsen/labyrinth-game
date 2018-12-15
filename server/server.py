@@ -17,11 +17,32 @@ import server_config
 import config
 
 import my_signals
+import atexit
 
 EMA_WEIGHT = server_config.EMA_WEIGHT
 MAX_SPEED = 1000 / config.MOVEMENT_TIMEOUT # squares per second
 
-PLAYERS = int(input('Number of players: '))            # amount of players
+PLAYERS = None
+while not PLAYERS:
+    try:
+        PLAYERS = int(input('Number of players (1-4): '))            # amount of players
+        if (PLAYERS < 1 or PLAYERS > 4):
+            print('Invalid number of players, try again.')
+            PLAYERS = None
+    except ValueError:
+        print('Invalid input, try again.')
+
+MAZE_WIDTH = None
+try:
+    while not MAZE_WIDTH:
+        MAZE_WIDTH = int(input('Width in squares of maze (min 20, defaults to 51): '))
+        if MAZE_WIDTH < 10:
+            print('Maze width too low, must be at least 20. Try again.')
+            MAZE_WIDTH = None
+except ValueError:
+    MAZE_WIDTH = config.GAME_WIDTH
+
+print('Maze is size ' + str(MAZE_WIDTH) + 'x' + str(MAZE_WIDTH) + '.')
 
 # Client dict keys
 PLAYER = 'player'
@@ -39,6 +60,7 @@ def wait_clients():
     while True:
         try:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             server_socket.settimeout(1.0)
             server_socket.bind((server_config.HOST, config.SERVER_PORT))
             server_socket.listen(PLAYERS)
@@ -46,13 +68,13 @@ def wait_clients():
         except (socket.timeout, BlockingIOError):
             print('Timed out trying to listen for connections, trying again.')
         except OSError as e:
-            print('OSError, ')
             if e.errno == 48 or e.errno == 98: # address in use
-                port += 1 # try with next port
+                print('Address in use. Try waiting 20 seconds and then try again.')
+                sys.exit()
             else:
                 raise e
 
-    print("Server listening on port " + str(port))
+    print("Server listening on port " + str(port) + '. Waiting for clients to connect.')
 
     clients = []
     while len(clients) < PLAYERS:
@@ -65,16 +87,20 @@ def wait_clients():
             print("Got connection from: " + str(client[SOCKET][1]))
         except socket.timeout:
             continue
-    print(len(clients))
+
+    print('Closing server socket.')
     server_socket.close()
     return clients
 
-def wait_nicknames(clients):
+def get_nicknames(clients):
     count = 0
     while count < len(clients):
         for client in clients:
             if not NAME in client:
                 msg = network.message.recv_msg(client[SOCKET][0])
+                if not msg:
+                    print('Error receiving username from client, exiting.')
+                    sys.exit()
                 msg = msg.decode()
                 if msg:
                     client[NAME] = msg
@@ -126,6 +152,13 @@ def game_loop(clients, game):
 
                         client[TIME_SINCE_UPDATE] = 0
                 except ConnectionResetError:
+                    global PLAYERS
+
+                    print(client[NAME] + ' disconnected and is now out of the game.')
+                    PLAYERS -= 1
+                    if PLAYERS == 0:
+                        print('All players have disconnected, exiting.')
+                        sys.exit()
                     client[SOCKET] = None
 
         if time_since_transmission > config.MOVEMENT_TIMEOUT:
@@ -141,21 +174,36 @@ def game_loop(clients, game):
                     client[ILLEGAL_MOVE] = False
 
             if game.winners:
+                print('Game is over, the winners are:')
+                for winner in game.winners:
+                    print(game.players[winner].name)
                 break
 
     pygame.time.wait(3000)
-    for client in clients:
-        client[SOCKET][0].close()
 
 
 # Wait for all players to connect
 clients = wait_clients()
-print(str(PLAYERS) + " players connected, waiting for nicknames...")
+print(str(PLAYERS) + " players connected.")
 
-wait_nicknames(clients)
-print('Received player names:')
+def cleanup():
+    print('Closing all client sockets.')
+    for client in clients:
+        if client[SOCKET] and client[SOCKET][0]:
+            client[SOCKET][0].close()
 
-maze = random_maze(config.GAME_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
+atexit.register(cleanup)
+
+get_nicknames(clients)
+print('The players playing are: ', end='')
+for i, client in enumerate(clients):
+    print(client[NAME], end='')
+    if not i == len(clients) - 1:
+        print(', ', end='')
+    else:
+        print() # newline
+
+maze = random_maze(MAZE_WIDTH, server_config.MAP_COMPLEXITY, server_config.MAP_DENSITY, PLAYERS)
 game = GameState(maze)
 
 for id_, client in enumerate(clients):

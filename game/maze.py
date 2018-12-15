@@ -27,7 +27,7 @@ class Maze:
         self.goal               = data['goal'][0], data['goal'][1]
         self.maze               = data['bit_array']
 
-def random_maze(width=150, complexity=.5, density=.8, players=4):
+def random_maze(width=51, complexity=.5, density=.8, players=4):
     print('Generating maze walls...')
     goal = width // 2 - 1, width // 2 - 1
     two_d_array = recursive_backtracker(width, goal)

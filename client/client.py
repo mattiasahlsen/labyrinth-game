@@ -19,10 +19,22 @@ from game.player import LocalPlayer, Player
 import client_config
 import config
 
+import my_signals
+import atexit
+
+def on_disconnect(exctype, value, traceback):
+    if exctype == ConnectionResetError:
+        print("Lost connection to server, exiting")
+        sys.exit()
+    else:
+        sys.__excepthook__(exctype, value, traceback)
+sys.excepthook = on_disconnect
+
 def connect(ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     client_socket.connect((ip, port))
-    client_socket.settimeout(1)
+    client_socket.settimeout(10)
     return client_socket
 
 # Game constants
@@ -30,10 +42,19 @@ DISPLAY_PARAMS = 0
 PLAYER_NAME = input('Nickname: ')
 
 # Network constants
-SERVER_IP = input('IP of server: ')
+SERVER_IP = input('IP of server (defaults to localhost): ')
+if SERVER_IP == '':
+    SERVER_IP = 'localhost'
 
 # Connect to server
+print('Trying to connect to ' + str(SERVER_IP) + ':' + str(config.SERVER_PORT) + '.')
 client_socket = connect(SERVER_IP, config.SERVER_PORT)
+print('Successfully connected.')
+
+def cleanup():
+    print('Closing socket.')
+    client_socket.close()
+atexit.register(cleanup)
 
 network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 
@@ -41,10 +62,13 @@ network.message.send_msg(client_socket, str.encode(PLAYER_NAME))
 print('Waiting for maze')
 while True:
     msg = network.message.recv_msg(client_socket)
-    if not msg:
+    if msg is None:
         # try again in a sec (literally)
-        print('Maze not received, trying again.')
+        print('Still waiting for maze. Most likely all players haven\'t connected yet.')
         continue
+    elif not msg:
+        print('Unknown error, exiting.')
+        sys.exit()
     else:
         break
 print('Received maze.')
@@ -152,6 +176,7 @@ while 1:
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.VIDEORESIZE:
+            # resize disabled, does not work on windows
             """
                 RES = min(event.w, event.h)
                 game = LocalGameState(id_name_pairs, maze, my_id, RES / client_config.VIEW_DISTANCE)

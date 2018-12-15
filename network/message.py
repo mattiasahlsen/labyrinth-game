@@ -1,5 +1,6 @@
 import struct
 import socket
+import sys
 
 # Taken from
 # https://stackoverflow.com/a/17668009
@@ -25,5 +26,5 @@ def recvall(sock, n):
                 return None
             data += packet
         except (socket.timeout, BlockingIOError):
-            return data
+            return None
     return data
