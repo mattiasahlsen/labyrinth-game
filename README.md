@@ -10,15 +10,21 @@ Be the first one to get to the middle of the maze and get the coin. Simple, righ
 - pygame: `python3 -m pip install pygame`
 
 ## Usage
-Make sure you have the dependencies:<br/>
-- `python3 -m pip install pygame`<br/>
-Clone this repository using this command: <br/>
+Make sure you have the dependencies:
+
+`python3 -m pip install pygame`
+
+Clone the repository:
+
 `git clone https://github.com/mattiasahlsen/labyrinth-game.git`<br/>
 `cd labyrinth-game`
 
-Start the server. <br/>
-`python3 server/server.py` or `make run-server`<br/>
-Start the right amount of clients and connect to the server's IP.<br/>
+Start the server.
+
+`python3 server/server.py` or `make run-server`
+
+Start the right amount of clients and connect to the server's IP.
+
 `python3 client/client.py` or `make run-client`
 
 You're good to go!
