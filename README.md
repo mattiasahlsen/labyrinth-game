@@ -1,6 +1,6 @@
 # labyrinth-game
 An online multiplayer maze game in python3 using pygame and tcp. The
-maze is automatically and randomly generated using a depth-first search algorithm.
+maze is automatically and randomly generated using a depth-first search algorithm, https://en.wikipedia.org/wiki/Maze_generation_algorithm#Depth-first_search
 
 ## Goal
 Be the first one to get to the middle of the maze and get the coin. Simple, right?
