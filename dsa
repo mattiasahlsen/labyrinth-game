@@ -1,0 +1,103 @@
+package tusseRobbo;
+import robocode.*;
+import java.lang.Math;
+//import java.awt.Color;
+
+// API help : https://robocode.sourceforge.io/docs/robocode/robocode/Robot.html
+
+/**
+ * Tusse - a robot by (your name here)
+ */
+public class Tusse extends Robot
+{
+	/**
+	 * run: Tusse's default behavior
+	 */
+	private boolean movedGun = false;
+	public void run() {
+		
+		// Initialization of the robot should be put here
+
+		// After trying out your robot, try uncommenting the import at the top,
+		// and the next line:
+
+		// setColors(Color.red,Color.blue,Color.green); // body,gun,radar
+
+		// Robot main loop
+	
+		double width = getBattleFieldWidth();
+		double height = getBattleFieldHeight();
+		while(true) {
+			//turnRadarLeft(10);
+			double x = getY();
+			double y = getX();
+			double heading = getHeading();
+			if(height-100<y){ //&& (270<heading ||90<heading)){
+				turnLeft(90);
+			}
+			else if(width-100<x) //&& ((90<heading&& heading<180) ||heading<90)){
+			{
+				turnLeft(90);
+			}
+			else if(y<100) //&&((90<heading
+			{
+				turnLeft(90);
+			}
+			else if(x<100){
+				turnLeft(90);	
+			}
+			/*else if(x<900){
+				
+			}
+			else if(y<100){
+				
+			}*/
+			//turnLeft(getHeading()+45)
+			// Replace the next 4 lines with any behavior you would like
+			ahead(100);
+			
+			//back(100);
+			//turnGunRight(360);
+			//turnRadarLeft(35);
+		}
+	}
+
+	/**
+	 * onScannedRobot: What to do when you see another robot
+	 */
+	public void onScannedRobot(ScannedRobotEvent e) {
+		double bearing = (e.getBearing() + getHeading()); double diff = getGunHeading() - bearing; if (diff < 10 && movedGun) { fire(1); movedGun = false; } else { movedGun = true; if (diff > 0) { turnGunLeft(diff); fire(1); } else { turnGunRight(diff); fire(1); } }
+	}
+
+	/**
+	 * onHitByBullet: What to do when you're hit by a bullet
+	 */
+	public void onHitByBullet(HitByBulletEvent e) {
+		// Replace the next line with any behavior you would like
+		//back(40);
+		double rand = Math.random();
+		if(rand<0.33){
+			back(40);
+		}
+		else if(rand<0.66){
+			ahead(40);
+		}
+		else{
+			if(rand<0.5){
+				turnRight(360*rand);
+			}
+			else{
+				turnLeft(360*rand);
+			}
+			
+		}
+	}
+	
+	/**
+	 * onHitWall: What to do when you hit a wall
+	 */
+	public void onHitWall(HitWallEvent e) {
+		// Replace the next line with any behavior you would like
+		turnLeft(180);
+	}	
+}
